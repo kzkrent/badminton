@@ -1,0 +1,76 @@
+{
+  "common": {
+    "appName": "Badminton Tournaments",
+    "tournaments": "Tournaments",
+    "players": "Players",
+    "staff": "Admins",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "language": "Language",
+    "roleOwner": "Owner",
+    "roleAdmin": "Admin"
+  },
+  "home": {
+    "title": "Tournaments",
+    "soon": "The tournament builder is coming in the next stage."
+  },
+  "login": {
+    "title": "Organizer sign-in",
+    "hint": "Viewers don't need to sign in. We'll email you a one-time link.",
+    "email": "Email",
+    "send": "Send link",
+    "sent": "Link sent. Check your inbox.",
+    "notAllowed": "This email is not registered as an organizer.",
+    "error": "Could not send the link. Please try again later.",
+    "callbackError": "The link is invalid or expired. Request a new one."
+  },
+  "players": {
+    "title": "Players",
+    "add": "Add player",
+    "empty": "No players yet.",
+    "search": "Search by name",
+    "newTitle": "New player",
+    "editTitle": "Edit player",
+    "nameRu": "Name (Russian)",
+    "nameEn": "Name (English)",
+    "firstNameRu": "Имя",
+    "lastNameRu": "Фамилия",
+    "firstNameEn": "First name",
+    "lastNameEn": "Last name",
+    "birthDate": "Date of birth",
+    "gender": "Gender",
+    "male": "M",
+    "female": "F",
+    "photo": "Photo",
+    "photoHint": "JPG, PNG or WebP, up to 5 MB",
+    "removePhoto": "Remove photo",
+    "club": "Club",
+    "rating": "Rating",
+    "achievements": "Achievements",
+    "deleteConfirm": "Delete this player permanently?",
+    "required": "Required",
+    "photoTooBig": "Photo is larger than 5 MB",
+    "photoType": "Only JPG, PNG or WebP allowed",
+    "age": "{age, plural, one {# year} other {# years}}"
+  },
+  "staff": {
+    "title": "Admins",
+    "hint": "Admins create and run tournaments but cannot change the player database or finished tournaments.",
+    "email": "Admin email",
+    "add": "Assign",
+    "remove": "Remove",
+    "empty": "No admins yet.",
+    "invalidEmail": "Invalid email",
+    "exists": "This email is already listed"
+  },
+  "errors": {
+    "forbidden": "Not allowed.",
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Not found"
+  }
+}
