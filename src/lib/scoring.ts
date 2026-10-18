@@ -1,0 +1,81 @@
+import type { MatchFormat } from "./tournaments";
+
+export type GameRules = { target: number; balance: boolean; cap: number | null };
+export type Game = [number, number];
+
+/** Is this a valid final score of one game? (SPEC 5.3) */
+export function isValidGame([h, a]: Game, { target, balance, cap }: GameRules): boolean {
+  if (![h, a].every((x) => Number.isInteger(x) && x >= 0) || h === a) return false;
+  const w = Math.max(h, a);
+  const l = Math.min(h, a);
+  if (!balance) return w === target && l <= target - 1;
+  const max = cap ?? Infinity;
+  if (w === target) return l <= target - 2;
+  if (w > target && w <= max && w - l === 2) return true;
+  return w === max && l === max - 1;
+}
+
+export type MatchError = { code: "game"; index: number } | { code: "count" };
+
+/**
+ * Validates a whole match.
+ * two_games — exactly 2 games (1:1 allowed); best_of_three — 2 games if 2:0, otherwise 3 with the third deciding.
+ */
+export function validateMatch(games: Game[], format: MatchFormat, rules: GameRules): MatchError | null {
+  const bad = games.findIndex((g) => !isValidGame(g, rules));
+  if (bad >= 0) return { code: "game", index: bad };
+
+  if (format === "two_games") return games.length === 2 ? null : { code: "count" };
+
+  const winners = games.map(([h, a]) => (h > a ? "h" : "a"));
+  if (games.length === 2) return winners[0] === winners[1] ? null : { code: "count" };
+  if (games.length === 3) return winners[0] !== winners[1] ? null : { code: "count" };
+  return { code: "count" };
+}
+
+export type MatchLike = {
+  home_id: string;
+  away_id: string;
+  games: Game[] | null;
+  walkover_winner_id: string | null;
+};
+
+export type Outcome = {
+  /** games won = standings points (1 per game) */
+  homeGames: number;
+  awayGames: number;
+  homeShuttles: number;
+  awayShuttles: number;
+};
+
+/** Result of a match for the table, or null if not played. Walkover = 2:0, each game target:0 (SPEC 5.4). */
+export function outcome(m: MatchLike, target: number): Outcome | null {
+  if (m.walkover_winner_id) {
+    const homeWins = m.walkover_winner_id === m.home_id;
+    return {
+      homeGames: homeWins ? 2 : 0,
+      awayGames: homeWins ? 0 : 2,
+      homeShuttles: homeWins ? 2 * target : 0,
+      awayShuttles: homeWins ? 0 : 2 * target,
+    };
+  }
+  if (!m.games?.length) return null;
+  const o: Outcome = { homeGames: 0, awayGames: 0, homeShuttles: 0, awayShuttles: 0 };
+  for (const [h, a] of m.games) {
+    o.homeShuttles += h;
+    o.awayShuttles += a;
+    if (h > a) o.homeGames++;
+    else o.awayGames++;
+  }
+  return o;
+}
+
+/** Display score, e.g. "21:15, 18:21, 21:19" or walkover games. */
+export function displayGames(m: MatchLike, target: number): Game[] | null {
+  if (m.walkover_winner_id) {
+    const homeWins = m.walkover_winner_id === m.home_id;
+    const g: Game = homeWins ? [target, 0] : [0, target];
+    return [g, g];
+  }
+  return m.games?.length ? m.games : null;
+}

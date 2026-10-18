@@ -146,5 +146,40 @@
     "tour": "Round {n}",
     "rests": "Resting: {names}",
     "notPlayed": "not played"
+  },
+  "results": {
+    "title": "Enter results",
+    "game": "Game {n}",
+    "walkover": "Walkover",
+    "save": "Save",
+    "clear": "Clear",
+    "saved": "Saved",
+    "err_game": "Invalid score in game {n}",
+    "err_count": "Number of games doesn't match the match format",
+    "err_empty": "Enter a score or choose a walkover"
+  },
+  "standings": {
+    "title": "Standings",
+    "participant": "Participant",
+    "played": "P",
+    "playedFull": "Played",
+    "for": "SF",
+    "forFull": "Shuttles for",
+    "against": "SA",
+    "againstFull": "Shuttles against",
+    "diff": "+/-",
+    "diffFull": "Shuttle difference",
+    "points": "Pts",
+    "pointsFull": "Points",
+    "place": "#",
+    "placeFull": "Place",
+    "tieNotice": "Places could not be separated by any criterion: {names}",
+    "info": "Participant info",
+    "close": "Close",
+    "noMatches": "No matches",
+    "walkoverShort": "w/o",
+    "rowHint": "Click a row to see the participant's matches",
+    "filterTours": "Rounds",
+    "allTours": "All"
   }
 }
