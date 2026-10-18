@@ -1,0 +1,91 @@
+import { fullName, lastName, type Gender, type Player } from "./players";
+
+export type Discipline = "M" | "F" | "MF" | "MM" | "FF";
+export type MatchFormat = "two_games" | "best_of_three";
+export type TournamentStatus = "draft" | "active" | "finished";
+
+export const DISCIPLINES: Discipline[] = ["M", "F", "MF", "MM", "FF"];
+
+export type Tournament = {
+  id: string;
+  name_ru: string;
+  name_en: string | null;
+  type: "league";
+  rounds: 1 | 2;
+  discipline: Discipline;
+  match_format: MatchFormat;
+  game_target: 15 | 21;
+  balance: boolean;
+  balance_cap: number | null;
+  starts_on: string | null;
+  status: TournamentStatus;
+};
+
+export const TOURNAMENT_COLUMNS =
+  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status";
+
+export type Participant = {
+  id: string;
+  tournament_id: string;
+  team_name: string | null;
+  player1: Player;
+  player2: Player | null;
+};
+
+export const PARTICIPANT_COLUMNS = `id, tournament_id, team_name,
+  player1:players!participants_player1_id_fkey(*),
+  player2:players!participants_player2_id_fkey(*)`;
+
+export type Match = {
+  id: string;
+  tour: number;
+  position: number;
+  home_id: string;
+  away_id: string;
+  games: [number, number][] | null;
+  walkover_winner_id: string | null;
+};
+
+export const MATCH_COLUMNS = "id, tour, position, home_id, away_id, games, walkover_winner_id";
+
+export const isDoubles = (d: Discipline) => d.length === 2;
+
+/** Required genders of the lineup, in any order. */
+const LINEUP: Record<Discipline, Gender[]> = {
+  M: ["M"],
+  F: ["F"],
+  MF: ["M", "F"],
+  MM: ["M", "M"],
+  FF: ["F", "F"],
+};
+
+export type LineupError = "size" | "gender" | "samePlayer";
+
+export function validateLineup(discipline: Discipline, players: Pick<Player, "id" | "gender">[]): LineupError | null {
+  const need = LINEUP[discipline];
+  if (players.length !== need.length) return "size";
+  if (players.length === 2 && players[0].id === players[1].id) return "samePlayer";
+  const have = players.map((p) => p.gender).sort();
+  return have.join() === [...need].sort().join() ? null : "gender";
+}
+
+export function tournamentName(t: Pick<Tournament, "name_ru" | "name_en">, locale: string) {
+  return (locale === "en" && t.name_en) || t.name_ru;
+}
+
+/** Display name: singles — player's name; doubles — team name or "Last1 / Last2". */
+export function participantName(p: Participant, locale: string): string {
+  if (!p.player2) return fullName(p.player1, locale);
+  return p.team_name || `${lastName(p.player1, locale) || fullName(p.player1, locale)} / ${lastName(p.player2, locale) || fullName(p.player2, locale)}`;
+}
+
+/** Second line under a team name: "Name1 / Name2". */
+export function participantMembers(p: Participant, locale: string): string | null {
+  if (!p.player2) return null;
+  return `${fullName(p.player1, locale)} / ${fullName(p.player2, locale)}`;
+}
+
+/** Can the given staff role still change this tournament? */
+export function canEdit(role: "owner" | "admin" | undefined, status: TournamentStatus) {
+  return role === "owner" || (role === "admin" && status !== "finished");
+}

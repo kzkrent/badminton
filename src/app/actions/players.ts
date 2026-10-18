@@ -6,10 +6,12 @@ import { redirect } from "@/i18n/navigation";
 import { getStaff, isOwner } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PHOTO_BUCKET } from "@/lib/supabase/env";
+import { PLAYER_COLUMNS, type Player } from "@/lib/players";
 
 export type PlayerFormState = {
   error?: "forbidden" | "generic" | "photoTooBig" | "photoType";
   fieldErrors?: { first_name_ru?: "required"; gender?: "required" };
+  player?: Player;
 };
 
 const MAX_PHOTO = 5 * 1024 * 1024;
@@ -57,7 +59,7 @@ async function uploadPhoto(supabase: Awaited<ReturnType<typeof createClient>>, f
   return error ? null : path;
 }
 
-export async function createPlayer(_prev: PlayerFormState, fd: FormData): Promise<PlayerFormState> {
+async function insertPlayer(fd: FormData): Promise<PlayerFormState> {
   if (!(await getStaff())) return { error: "forbidden" };
   const fields = readFields(fd);
   const invalid = validate(fields);
@@ -72,13 +74,24 @@ export async function createPlayer(_prev: PlayerFormState, fd: FormData): Promis
   const { data, error } = await supabase
     .from("players")
     .insert({ ...fields, photo_path })
-    .select("id")
+    .select(PLAYER_COLUMNS)
     .single();
   if (error) return { error: "generic" };
 
   revalidatePath("/[locale]/players", "layout");
-  redirect({ href: `/players/${data.id}`, locale: await getLocale() });
+  return { player: data as Player };
+}
+
+export async function createPlayer(_prev: PlayerFormState, fd: FormData): Promise<PlayerFormState> {
+  const result = await insertPlayer(fd);
+  if (!result.player) return result;
+  redirect({ href: `/players/${result.player.id}`, locale: await getLocale() });
   return {};
+}
+
+/** Creates a player without leaving the page (e.g. while adding tournament participants). */
+export async function createPlayerInline(_prev: PlayerFormState, fd: FormData): Promise<PlayerFormState> {
+  return insertPlayer(fd);
 }
 
 export async function updatePlayer(id: string, _prev: PlayerFormState, fd: FormData): Promise<PlayerFormState> {

@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import type { PlayerFormState } from "@/app/actions/players";
 import type { Player } from "@/lib/players";
@@ -9,15 +9,24 @@ import { Link } from "@/i18n/navigation";
 type Props = {
   action: (prev: PlayerFormState, fd: FormData) => Promise<PlayerFormState>;
   player?: Player;
-  cancelHref: string;
+  /** Page to return to on cancel; or use onCancel for inline (dialog) use. */
+  cancelHref?: string;
+  onCancel?: () => void;
+  /** Inline use: called with the created player instead of navigating away. */
+  onCreated?: (player: Player) => void;
+  defaultGender?: "M" | "F";
 };
 
-export function PlayerForm({ action, player, cancelHref }: Props) {
+export function PlayerForm({ action, player, cancelHref, onCancel, onCreated, defaultGender }: Props) {
   const t = useTranslations("players");
   const tc = useTranslations("common");
   const te = useTranslations("errors");
   const [state, formAction, pending] = useActionState(action, {});
   const fe = state.fieldErrors ?? {};
+
+  useEffect(() => {
+    if (state.player) onCreated?.(state.player);
+  }, [state.player, onCreated]);
 
   const error =
     state.error === "photoTooBig" || state.error === "photoType"
@@ -70,7 +79,7 @@ export function PlayerForm({ action, player, cancelHref }: Props) {
           <div className="flex gap-4 pt-2 text-sm">
             {(["M", "F"] as const).map((g) => (
               <label key={g} className="flex items-center gap-2">
-                <input type="radio" name="gender" value={g} defaultChecked={player?.gender === g} required />
+                <input type="radio" name="gender" value={g} defaultChecked={(player?.gender ?? defaultGender) === g} required />
                 {g === "M" ? t("male") : t("female")}
               </label>
             ))}
@@ -116,9 +125,15 @@ export function PlayerForm({ action, player, cancelHref }: Props) {
         <button className="btn-primary" disabled={pending}>
           {tc("save")}
         </button>
-        <Link href={cancelHref} className="btn-secondary">
-          {tc("cancel")}
-        </Link>
+        {cancelHref ? (
+          <Link href={cancelHref} className="btn-secondary">
+            {tc("cancel")}
+          </Link>
+        ) : (
+          <button type="button" onClick={onCancel} className="btn-secondary">
+            {tc("cancel")}
+          </button>
+        )}
       </div>
     </form>
   );
