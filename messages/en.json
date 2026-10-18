@@ -55,7 +55,18 @@
     "required": "Required",
     "photoTooBig": "Photo is larger than 5 MB",
     "photoType": "Only JPG, PNG or WebP allowed",
-    "age": "{age, plural, one {# year} other {# years}}"
+    "age": "{age, plural, one {# year} other {# years}}",
+    "stats": "Statistics",
+    "tournamentsCount": "Tournaments",
+    "matchesPlayed": "Matches",
+    "wins": "Wins",
+    "losses": "Losses",
+    "draws": "Draws",
+    "games": "Games",
+    "history": "Tournament history",
+    "noHistory": "No tournaments yet.",
+    "placeOf": "{place} of {count}",
+    "record": "{wins}–{losses}"
   },
   "staff": {
     "title": "Admins",

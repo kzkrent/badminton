@@ -7,6 +7,9 @@ import { ageOn, fullName, PLAYER_COLUMNS, type Player } from "@/lib/players";
 import { deletePlayer } from "@/app/actions/players";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { StatusBadge } from "@/components/TournamentHeader";
+import { loadPlayerHistory } from "@/lib/tournament-data";
+import { participantName, tournamentName } from "@/lib/tournaments";
 
 export default async function PlayerPage({ params }: PageProps<"/[locale]/players/[id]">) {
   const { locale, id } = await params;
@@ -20,8 +23,10 @@ export default async function PlayerPage({ params }: PageProps<"/[locale]/player
   const t = await getTranslations("players");
   const tc = await getTranslations("common");
   const format = await getFormatter();
+  const tt = await getTranslations("tournaments");
   const owner = isOwner(await getStaff());
   const name = fullName(p, locale);
+  const { history, total } = await loadPlayerHistory(p.id);
 
   const rows: [string, React.ReactNode][] = [
     [t("gender"), p.gender === "M" ? t("male") : t("female")],
@@ -81,6 +86,66 @@ export default async function PlayerPage({ params }: PageProps<"/[locale]/player
           </div>
         )}
       </div>
+
+      <h2 className="mt-8 mb-3 text-lg font-semibold">{t("stats")}</h2>
+      <div className="mb-8 grid grid-cols-3 gap-3 sm:grid-cols-6">
+        {(
+          [
+            [t("tournamentsCount"), history.length],
+            [t("matchesPlayed"), total.played],
+            [t("wins"), total.wins],
+            [t("losses"), total.losses],
+            [t("draws"), total.draws],
+            [t("games"), `${total.gamesWon}:${total.gamesLost}`],
+          ] as const
+        ).map(([label, value]) => (
+          <div key={label} className="card p-3 text-center">
+            <div className="text-xl font-semibold tabular-nums">{value}</div>
+            <div className="text-xs text-muted">{label}</div>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="mb-3 text-lg font-semibold">{t("history")}</h2>
+      {history.length === 0 ? (
+        <div className="card p-6 text-sm text-muted">{t("noHistory")}</div>
+      ) : (
+        <ul className="card divide-y divide-border">
+          {history.map(({ tournament: tr, participant, place, participantsCount, record }) => {
+            const partner = participant.player1.id === p.id ? participant.player2 : participant.player1;
+            return (
+              <li key={tr.id}>
+                <Link href={`/tournaments/${tr.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-background">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-medium">{tournamentName(tr, locale)}</span>
+                      <StatusBadge status={tr.status} />
+                    </div>
+                    <div className="truncate text-xs text-muted">
+                      {[
+                        tr.starts_on && format.dateTime(new Date(tr.starts_on), { dateStyle: "medium", timeZone: "UTC" }),
+                        tt(`disc_${tr.discipline}`),
+                        partner && participantName(participant, locale) + (participant.team_name ? ` (${fullName(partner, locale)})` : ""),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </div>
+                  </div>
+                  <div className="text-right text-sm">
+                    <div className="font-semibold">
+                      {place ? t("placeOf", { place, count: participantsCount }) : "—"}
+                    </div>
+                    <div className="text-xs text-muted tabular-nums">
+                      {t("record", { wins: record.wins, losses: record.losses })}
+                      {record.draws > 0 && `–${record.draws}`}
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

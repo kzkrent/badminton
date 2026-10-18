@@ -55,7 +55,18 @@
     "required": "Обязательное поле",
     "photoTooBig": "Фото больше 5 МБ",
     "photoType": "Допустимы только JPG, PNG или WebP",
-    "age": "{age, plural, one {# год} few {# года} many {# лет} other {# года}}"
+    "age": "{age, plural, one {# год} few {# года} many {# лет} other {# года}}",
+    "stats": "Статистика",
+    "tournamentsCount": "Турниров",
+    "matchesPlayed": "Матчей",
+    "wins": "Побед",
+    "losses": "Поражений",
+    "draws": "Ничьих",
+    "games": "Геймы",
+    "history": "Участие в турнирах",
+    "noHistory": "Ещё не участвовал в турнирах.",
+    "placeOf": "{place} из {count}",
+    "record": "{wins}–{losses}"
   },
   "staff": {
     "title": "Администраторы",

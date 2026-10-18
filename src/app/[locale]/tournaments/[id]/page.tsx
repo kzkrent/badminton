@@ -8,6 +8,7 @@ import { TournamentHeader } from "@/components/TournamentHeader";
 import { ParticipantLabel } from "@/components/ParticipantLabel";
 import { StandingsTable } from "@/components/StandingsTable";
 import { FilteredSchedule } from "@/components/FilteredSchedule";
+import { LiveRefresh } from "@/components/LiveRefresh";
 
 export default async function TournamentPage({ params }: PageProps<"/[locale]/tournaments/[id]">) {
   const { locale, id } = await params;
@@ -53,6 +54,7 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
         </>
       ) : (
         <>
+          {tournament.status === "active" && <LiveRefresh tournamentId={id} />}
           <h2 className="mb-3 text-lg font-semibold">{ts("title")}</h2>
           <StandingsTable
             rows={standings.rows}
