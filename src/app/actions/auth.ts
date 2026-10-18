@@ -5,7 +5,7 @@ import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type LoginState = { status: "idle" | "sent" | "notAllowed" | "error" };
+export type LoginState = { status: "idle" | "sent" | "notAllowed" | "rateLimited" | "error" };
 
 export async function sendMagicLink(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -24,7 +24,12 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
     email,
     options: { emailRedirectTo: `${origin}/auth/confirm?next=/${locale}` },
   });
-  return { status: error ? "error" : "sent" };
+  if (error) {
+    console.error("signInWithOtp failed:", error.code, error.message);
+    // Supabase's built-in mailer allows only a few emails per hour.
+    return { status: error.code === "over_email_send_rate_limit" || error.status === 429 ? "rateLimited" : "error" };
+  }
+  return { status: "sent" };
 }
 
 export async function signOut() {

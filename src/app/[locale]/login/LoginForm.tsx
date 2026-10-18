@@ -24,6 +24,7 @@ export function LoginForm() {
       </div>
       {state.status === "notAllowed" && <p className="text-sm text-danger">{t("notAllowed")}</p>}
       {state.status === "error" && <p className="text-sm text-danger">{t("error")}</p>}
+      {state.status === "rateLimited" && <p className="text-sm text-danger">{t("rateLimited")}</p>}
       <button className="btn-primary w-full" disabled={pending}>
         {t("send")}
       </button>

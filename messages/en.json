@@ -26,7 +26,8 @@
     "sent": "Link sent. Check your inbox.",
     "notAllowed": "This email is not registered as an organizer.",
     "error": "Could not send the link. Please try again later.",
-    "callbackError": "The link is invalid or expired. Request a new one."
+    "callbackError": "The link is invalid or expired. Request a new one.",
+    "rateLimited": "Too many emails in the last hour (mail limit). Please try again later."
   },
   "players": {
     "title": "Players",
