@@ -41,12 +41,21 @@ export type MatchLike = {
 };
 
 export type Outcome = {
-  /** games won = standings points (1 per game) */
   homeGames: number;
   awayGames: number;
+  /** standings points (SPEC 6.2) */
+  homePoints: number;
+  awayPoints: number;
   homeShuttles: number;
   awayShuttles: number;
 };
+
+/** League points by games won: 2:0 → 3:0, 2:1 → 2:1, 1:1 → 1:1 (SPEC 6.2). */
+export function matchPoints(homeGames: number, awayGames: number): [number, number] {
+  if (homeGames > awayGames && awayGames === 0) return [3, 0];
+  if (awayGames > homeGames && homeGames === 0) return [0, 3];
+  return [homeGames, awayGames];
+}
 
 /** Result of a match for the table, or null if not played. Walkover = 2:0, each game target:0 (SPEC 5.4). */
 export function outcome(m: MatchLike, target: number): Outcome | null {
@@ -55,18 +64,21 @@ export function outcome(m: MatchLike, target: number): Outcome | null {
     return {
       homeGames: homeWins ? 2 : 0,
       awayGames: homeWins ? 0 : 2,
+      homePoints: homeWins ? 3 : 0,
+      awayPoints: homeWins ? 0 : 3,
       homeShuttles: homeWins ? 2 * target : 0,
       awayShuttles: homeWins ? 0 : 2 * target,
     };
   }
   if (!m.games?.length) return null;
-  const o: Outcome = { homeGames: 0, awayGames: 0, homeShuttles: 0, awayShuttles: 0 };
+  const o: Outcome = { homeGames: 0, awayGames: 0, homePoints: 0, awayPoints: 0, homeShuttles: 0, awayShuttles: 0 };
   for (const [h, a] of m.games) {
     o.homeShuttles += h;
     o.awayShuttles += a;
     if (h > a) o.homeGames++;
     else o.awayGames++;
   }
+  [o.homePoints, o.awayPoints] = matchPoints(o.homeGames, o.awayGames);
   return o;
 }
 

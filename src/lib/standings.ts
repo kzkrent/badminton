@@ -32,8 +32,8 @@ function totals(ids: string[], matches: MatchLike[], target: number): Map<string
     if (!o || !home || !away) continue;
     home.played++;
     away.played++;
-    home.points += o.homeGames;
-    away.points += o.awayGames;
+    home.points += o.homePoints;
+    away.points += o.awayPoints;
     home.shuttlesFor += o.homeShuttles;
     home.shuttlesAgainst += o.awayShuttles;
     away.shuttlesFor += o.awayShuttles;

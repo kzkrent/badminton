@@ -34,9 +34,19 @@ describe("computeStandings", () => {
     expect(b).toMatchObject({ played: 1, points: 1, shuttlesFor: 55, shuttlesAgainst: 60, diff: -5, place: "2" });
   });
 
+  it("3 points for 2:0, 2:1 split for three games", () => {
+    const s = computeStandings(
+      ["A", "B", "C"],
+      [m("A", "B", [21, 0], [21, 0]), m("A", "C", [21, 0], [0, 21], [21, 0])],
+      21,
+    );
+    const pts = Object.fromEntries(s.rows.map((r) => [r.id, r.points]));
+    expect(pts).toEqual({ A: 5, B: 0, C: 1 });
+  });
+
   it("walkover counts 2:0 with target:0 games", () => {
     const s = computeStandings(["A", "B"], [wo("A", "B", "B")], 15);
-    expect(s.rows[0]).toMatchObject({ id: "B", points: 2, shuttlesFor: 30, shuttlesAgainst: 0 });
+    expect(s.rows[0]).toMatchObject({ id: "B", points: 3, shuttlesFor: 30, shuttlesAgainst: 0 });
     expect(s.rows[1]).toMatchObject({ id: "A", points: 0, played: 1 });
   });
 
@@ -89,18 +99,18 @@ describe("computeStandings", () => {
     const s = computeStandings(
       ["A", "B", "C", "D"],
       [
-        m("A", "B", [21, 0], [21, 0]), // A 2 : B 0
-        m("A", "C", [21, 19], [19, 21], [19, 21]), // A 1 : C 2
-        m("B", "C", [21, 19], [19, 21], [21, 19]), // B 2 : C 1
+        m("A", "B", [21, 0], [21, 0]), // A 3 : B 0
+        m("C", "A", [19, 21], [21, 19], [21, 19]), // C 2 : A 1
+        m("B", "C", [19, 21], [21, 19], [19, 21]), // B 1 : C 2
         m("D", "A", [21, 19], [21, 19]), // A 0
-        m("D", "B", [21, 19], [19, 21], [21, 19]), // B 1
+        m("B", "D", [21, 19], [21, 19]), // B 3
         m("D", "C", [21, 19], [21, 19]), // C 0
       ],
       21,
     );
     const pts = Object.fromEntries(s.rows.map((r) => [r.id, r.points]));
-    expect(pts).toEqual({ A: 3, B: 3, C: 3, D: 6 });
-    // Mini-table of A,B,C: A 3, C 3, B 2 → B third. A vs C re-applied: C won 2:1,
+    expect(pts).toEqual({ A: 4, B: 4, C: 4, D: 6 });
+    // Mini-table of A,B,C: A 4, C 4, B 1 → B third. A vs C re-applied: C won 2:1,
     // although A has the far better overall difference.
     expect(order(s)).toEqual(["D", "C", "A", "B"]);
     expect(s.rows.find((r) => r.id === "A")!.diff).toBeGreaterThan(s.rows.find((r) => r.id === "C")!.diff);
