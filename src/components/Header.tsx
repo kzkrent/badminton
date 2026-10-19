@@ -21,6 +21,9 @@ export async function Header() {
           <Link href="/players" className="hover:text-accent">
             {t("players")}
           </Link>
+          <Link href="/ratings" className="hover:text-accent">
+            {t("ratings")}
+          </Link>
           {isOwner(staff) && (
             <Link href="/staff" className="hover:text-accent">
               {t("staff")}

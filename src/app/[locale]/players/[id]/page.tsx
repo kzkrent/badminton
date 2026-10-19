@@ -9,6 +9,9 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { StatusBadge } from "@/components/TournamentHeader";
 import { loadPlayerHistory } from "@/lib/tournament-data";
+import { loadRatings } from "@/lib/rating-data";
+import { RATING_CATEGORIES } from "@/lib/rating";
+import { RatingChart } from "@/components/RatingChart";
 import { participantName, tournamentName } from "@/lib/tournaments";
 
 export default async function PlayerPage({ params }: PageProps<"/[locale]/players/[id]">) {
@@ -27,6 +30,9 @@ export default async function PlayerPage({ params }: PageProps<"/[locale]/player
   const owner = isOwner(await getStaff());
   const name = fullName(p, locale);
   const { history, total } = await loadPlayerHistory(p.id);
+  const tr = await getTranslations("ratings");
+  const ratings = await loadRatings();
+  const tournamentNames = new Map(history.map((h) => [h.tournament.id, tournamentName(h.tournament, locale)]));
 
   const rows: [string, React.ReactNode][] = [
     [t("gender"), p.gender === "M" ? t("male") : t("female")],
@@ -36,7 +42,6 @@ export default async function PlayerPage({ params }: PageProps<"/[locale]/player
         `${format.dateTime(new Date(p.birth_date), { dateStyle: "long", timeZone: "UTC" })} (${t("age", { age: ageOn(p.birth_date) })})`,
     ],
     [t("club"), p.club],
-    [t("rating"), p.rating],
   ];
 
   return (
@@ -85,6 +90,35 @@ export default async function PlayerPage({ params }: PageProps<"/[locale]/player
             </form>
           </div>
         )}
+      </div>
+
+      <h2 className="mt-8 mb-3 text-lg font-semibold">{t("ratings")}</h2>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {RATING_CATEGORIES.map((cat) => {
+          const r = ratings[cat].get(p.id);
+          return (
+            <div key={cat} className="card p-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-sm text-muted">{tr(`cat_${cat}`)}</span>
+                <span className="text-xs text-muted">
+                  {r ? t("ratingMatches", { count: r.matches }) : t("noRating")}
+                </span>
+              </div>
+              <div className="text-2xl font-semibold tabular-nums">{r ? Math.round(r.rating) : "—"}</div>
+              {r && r.history.length >= 2 && (
+                <RatingChart
+                  start={r.history[0].before}
+                  points={r.history.map((h) => ({
+                    value: h.after,
+                    delta: h.after - h.before,
+                    label: tournamentNames.get(h.tournamentId) ?? "",
+                  }))}
+                  ariaLabel={`${tr(`cat_${cat}`)}: ${Math.round(r.history[0].before)} → ${Math.round(r.rating)}`}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <h2 className="mt-8 mb-3 text-lg font-semibold">{t("stats")}</h2>

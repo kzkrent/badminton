@@ -205,7 +205,6 @@ function PlayerCard({ player: p }: { player: Player }) {
         `${format.dateTime(new Date(p.birth_date), { dateStyle: "medium", timeZone: "UTC" })} (${t("age", { age: ageOn(p.birth_date) })})`,
     ],
     [t("club"), p.club],
-    [t("rating"), p.rating],
   ];
 
   return (

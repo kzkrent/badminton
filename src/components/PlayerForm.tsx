@@ -87,7 +87,7 @@ export function PlayerForm({ action, player, cancelHref, onCancel, onCreated, de
           {fe.gender && <p className="mt-1 text-xs text-danger">{t("required")}</p>}
         </div>
         {field("birth_date", t("birthDate"), { type: "date" })}
-        {field("rating", t("rating"), { type: "number", step: "0.01" })}
+        {field("rating", t("startRating"), { type: "number", step: "1", placeholder: "1500", title: t("startRatingHint") })}
       </div>
 
       {field("club", t("club"))}

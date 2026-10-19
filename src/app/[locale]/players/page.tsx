@@ -55,7 +55,6 @@ export default async function PlayersPage({ params, searchParams }: PageProps<"/
                       {[p.gender === "M" ? t("male") : t("female"), p.club].filter(Boolean).join(" · ")}
                     </div>
                   </div>
-                  {p.rating !== null && <span className="text-sm font-semibold text-accent">{p.rating}</span>}
                 </Link>
               </li>
             );

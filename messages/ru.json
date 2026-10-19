@@ -13,7 +13,8 @@
     "back": "Назад",
     "language": "Язык",
     "roleOwner": "Владелец",
-    "roleAdmin": "Администратор"
+    "roleAdmin": "Администратор",
+    "ratings": "Рейтинг"
   },
   "home": {
     "title": "Турниры"
@@ -67,7 +68,12 @@
     "history": "Участие в турнирах",
     "noHistory": "Ещё не участвовал в турнирах.",
     "placeOf": "{place} из {count}",
-    "record": "{wins}–{losses}"
+    "record": "{wins}–{losses}",
+    "startRating": "Стартовый рейтинг",
+    "startRatingHint": "Начальное значение для рейтинга Эло; если пусто — 1500",
+    "ratings": "Рейтинг Эло",
+    "ratingMatches": "{count, plural, one {# матч} few {# матча} many {# матчей} other {# матча}}",
+    "noRating": "нет матчей"
   },
   "staff": {
     "title": "Администраторы",
@@ -193,5 +199,17 @@
     "rowHint": "Нажмите на строку, чтобы увидеть матчи участника",
     "filterTours": "Туры",
     "allTours": "Все"
+  },
+  "ratings": {
+    "title": "Рейтинг",
+    "hint": "Рейтинг Эло. Показаны игроки, сыгравшие в категории не меньше {min} матчей.",
+    "cat_singles": "Одиночный",
+    "cat_doubles": "Парный",
+    "cat_mixed": "Микст",
+    "player": "Игрок",
+    "rating": "Рейтинг",
+    "matches": "Матчей",
+    "change": "Последний турнир",
+    "empty": "Пока нет игроков с {min} и более матчами в этой категории."
   }
 }

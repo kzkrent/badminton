@@ -13,7 +13,8 @@
     "back": "Back",
     "language": "Language",
     "roleOwner": "Owner",
-    "roleAdmin": "Admin"
+    "roleAdmin": "Admin",
+    "ratings": "Ratings"
   },
   "home": {
     "title": "Tournaments"
@@ -67,7 +68,12 @@
     "history": "Tournament history",
     "noHistory": "No tournaments yet.",
     "placeOf": "{place} of {count}",
-    "record": "{wins}–{losses}"
+    "record": "{wins}–{losses}",
+    "startRating": "Starting rating",
+    "startRatingHint": "Initial Elo value; 1500 if empty",
+    "ratings": "Elo rating",
+    "ratingMatches": "{count, plural, one {# match} other {# matches}}",
+    "noRating": "no matches"
   },
   "staff": {
     "title": "Admins",
@@ -193,5 +199,17 @@
     "rowHint": "Click a row to see the participant's matches",
     "filterTours": "Rounds",
     "allTours": "All"
+  },
+  "ratings": {
+    "title": "Ratings",
+    "hint": "Elo rating. Players with at least {min} matches in the category are shown.",
+    "cat_singles": "Singles",
+    "cat_doubles": "Doubles",
+    "cat_mixed": "Mixed",
+    "player": "Player",
+    "rating": "Rating",
+    "matches": "Matches",
+    "change": "Last tournament",
+    "empty": "No players with {min}+ matches in this category yet."
   }
 }
