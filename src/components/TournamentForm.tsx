@@ -11,10 +11,12 @@ type Props = {
   tournament?: Tournament;
   /** Discipline can't change while participants exist. */
   disciplineLocked?: boolean;
+  /** Only the owner sets the rating weight. */
+  canSetWeight?: boolean;
   cancelHref: string;
 };
 
-export function TournamentForm({ action, tournament: t, disciplineLocked, cancelHref }: Props) {
+export function TournamentForm({ action, tournament: t, disciplineLocked, canSetWeight, cancelHref }: Props) {
   const tt = useTranslations("tournaments");
   const tc = useTranslations("common");
   const te = useTranslations("errors");
@@ -28,7 +30,9 @@ export function TournamentForm({ action, tournament: t, disciplineLocked, cancel
       ? tt("nameRequired")
       : state.error === "balanceCap"
         ? tt("balanceCapError")
-        : state.error
+        : state.error === "weight"
+          ? tt("weightError")
+          : state.error
           ? te(state.error)
           : null;
 
@@ -67,6 +71,24 @@ export function TournamentForm({ action, tournament: t, disciplineLocked, cancel
           </label>
           <input id="starts_on" name="starts_on" type="date" defaultValue={t?.starts_on ?? ""} className="input" />
         </div>
+        {canSetWeight && (
+          <div>
+            <label htmlFor="rating_weight" className="label">
+              {tt("weight")}
+            </label>
+            <input
+              id="rating_weight"
+              name="rating_weight"
+              type="number"
+              min={0}
+              max={3}
+              step={0.25}
+              defaultValue={t?.rating_weight ?? 1}
+              className="input"
+            />
+            <p className="mt-1 text-xs text-muted">{tt("weightHint")}</p>
+          </div>
+        )}
       </div>
 
       <fieldset disabled={formatLocked} className="space-y-6">

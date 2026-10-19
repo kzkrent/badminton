@@ -24,7 +24,14 @@ export async function tournamentSummary(t: Tournament) {
     tt(`rounds_${t.rounds}`),
     tt("summaryGame", { format: tt(`format_${t.match_format}`), target: t.game_target }),
     t.balance ? tt("summaryBalance", { cap: t.balance_cap ?? 0 }) : tt("summaryNoBalance"),
-  ].join(" · ");
+    Number(t.rating_weight) === 0
+      ? tt("summaryUnrated")
+      : Number(t.rating_weight) !== 1
+        ? tt("summaryWeight", { w: Number(t.rating_weight) })
+        : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 export async function TournamentHeader({ tournament: t, locale }: { tournament: Tournament; locale: string }) {

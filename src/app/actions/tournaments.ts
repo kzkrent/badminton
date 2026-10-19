@@ -15,7 +15,7 @@ import {
   type Tournament,
 } from "@/lib/tournaments";
 
-export type TournamentFormState = { error?: "forbidden" | "generic" | "nameRequired" | "balanceCap" };
+export type TournamentFormState = { error?: "forbidden" | "generic" | "nameRequired" | "balanceCap" | "weight" };
 export type ParticipantFormState = {
   error?: "forbidden" | "generic" | "notDraft" | "alreadyIn" | LineupError;
   ok?: number;
@@ -45,11 +45,19 @@ export async function saveTournament(
   _prev: TournamentFormState,
   fd: FormData,
 ): Promise<TournamentFormState> {
-  if (!(await getStaff())) return { error: "forbidden" };
+  const staff = await getStaff();
+  if (!staff) return { error: "forbidden" };
 
   const name_ru = text(fd, "name_ru");
   if (!name_ru) return { error: "nameRequired" };
-  const common = { name_ru, name_en: text(fd, "name_en"), starts_on: text(fd, "starts_on") };
+  const common: Record<string, unknown> = { name_ru, name_en: text(fd, "name_en"), starts_on: text(fd, "starts_on") };
+
+  // Rating weight is the owner's call (SPEC 8); admins' forms don't send it.
+  if (staff.role === "owner" && fd.has("rating_weight")) {
+    const weight = Number(String(fd.get("rating_weight")).replace(",", "."));
+    if (!(weight >= 0 && weight <= 3 && Number.isInteger(weight * 4))) return { error: "weight" };
+    common.rating_weight = weight;
+  }
 
   const discipline = String(fd.get("discipline")) as Discipline;
   const game_target = fd.get("game_target") === "15" ? 15 : 21;

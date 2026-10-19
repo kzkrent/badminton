@@ -23,6 +23,8 @@ export type RatingMatch = {
   home: string[];
   away: string[];
   games: Game[];
+  /** Tournament weight: multiplies K (0 = not rated). */
+  weight: number;
 };
 
 export type RatingPoint = { matchId: string; tournamentId: string; before: number; after: number };
@@ -56,6 +58,7 @@ export function computeRatings(matches: RatingMatch[], seeds: Map<string, number
   };
 
   for (const m of matches) {
+    if (m.weight <= 0) continue;
     const home = m.home.map((id) => get(m.category, id));
     const away = m.away.map((id) => get(m.category, id));
     const avg = (side: PlayerRating[]) => side.reduce((s, r) => s + r.rating, 0) / side.length;
@@ -77,7 +80,7 @@ export function computeRatings(matches: RatingMatch[], seeds: Map<string, number
       ...away.map((r) => [r, 1 - sHome - (1 - eHome)] as [PlayerRating, number]),
     ];
     for (const [r, delta] of updates) {
-      const k = r.matches < PROVISIONAL_MATCHES ? K_PROVISIONAL : K_REGULAR;
+      const k = (r.matches < PROVISIONAL_MATCHES ? K_PROVISIONAL : K_REGULAR) * m.weight;
       const before = r.rating;
       r.rating = before + k * delta;
       r.matches++;

@@ -4,7 +4,13 @@ import { categoryOf, computeRatings, type RatingMatch } from "./rating";
 import type { Game } from "./scoring";
 import type { Discipline } from "./tournaments";
 
-type TournamentRow = { id: string; discipline: Discipline; starts_on: string | null; created_at: string };
+type TournamentRow = {
+  id: string;
+  discipline: Discipline;
+  starts_on: string | null;
+  created_at: string;
+  rating_weight: number;
+};
 type ParticipantRow = { id: string; player1_id: string; player2_id: string | null };
 type MatchRow = {
   id: string;
@@ -20,7 +26,7 @@ type MatchRow = {
 export const loadRatings = cache(async () => {
   const supabase = await createClient();
   const [{ data: ts }, { data: ps }, { data: ms }, { data: players }] = await Promise.all([
-    supabase.from("tournaments").select("id, discipline, starts_on, created_at").neq("status", "draft"),
+    supabase.from("tournaments").select("id, discipline, starts_on, created_at, rating_weight").neq("status", "draft"),
     supabase.from("participants").select("id, player1_id, player2_id"),
     supabase
       .from("matches")
@@ -57,6 +63,7 @@ export const loadRatings = cache(async () => {
       home: side(m.home_id),
       away: side(m.away_id),
       games: m.games!,
+      weight: Number(tournaments.get(m.tournament_id)!.rating_weight ?? 1),
     }))
     .filter((m) => m.home.length && m.away.length);
 

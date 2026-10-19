@@ -163,7 +163,12 @@
     "schedule": "Schedule",
     "tour": "Round {n}",
     "rests": "Resting: {names}",
-    "notPlayed": "not played"
+    "notPlayed": "not played",
+    "weight": "Rating weight",
+    "weightHint": "Multiplies rating changes: 1 normal, 2 twice as important, 0 not rated",
+    "weightError": "Weight must be 0–3 in steps of 0.25",
+    "summaryWeight": "rating weight ×{w}",
+    "summaryUnrated": "not rated"
   },
   "results": {
     "title": "Enter results",

@@ -8,6 +8,7 @@ const singles = (id: string, home: string, away: string, games: RatingMatch["gam
   home: [home],
   away: [away],
   games,
+  weight: 1,
 });
 
 describe("basics", () => {
@@ -60,7 +61,7 @@ describe("computeRatings", () => {
   it("doubles: team average for expectation, both partners move", () => {
     const seeds = new Map([["A", 1600], ["B", 1400], ["C", 1500], ["D", 1500]]);
     const r = computeRatings(
-      [{ id: "d1", tournamentId: "T", category: "doubles", home: ["A", "B"], away: ["C", "D"], games: [[21, 5], [21, 5]] }],
+      [{ id: "d1", tournamentId: "T", category: "doubles", home: ["A", "B"], away: ["C", "D"], games: [[21, 5], [21, 5]], weight: 1 }],
       seeds,
     ).doubles;
     expect(r.get("A")!.rating).toBe(1620);
@@ -72,11 +73,18 @@ describe("computeRatings", () => {
   it("keeps categories apart", () => {
     const r = computeRatings([
       singles("s", "A", "B", [[21, 0], [21, 0]]),
-      { id: "x", tournamentId: "T", category: "mixed", home: ["A", "F"], away: ["B", "G"], games: [[0, 21], [0, 21]] },
+      { id: "x", tournamentId: "T", category: "mixed", home: ["A", "F"], away: ["B", "G"], games: [[0, 21], [0, 21]], weight: 1 },
     ]);
     expect(r.singles.get("A")!.rating).toBe(1520);
     expect(r.mixed.get("A")!.rating).toBe(1480);
     expect(r.doubles.size).toBe(0);
+  });
+
+  it("tournament weight multiplies K; weight 0 is not rated", () => {
+    const heavy = computeRatings([{ ...singles("h", "A", "B", [[21, 0], [21, 0]]), weight: 1.5 }]).singles;
+    expect(heavy.get("A")!.rating).toBe(1530);
+    const friendly = computeRatings([{ ...singles("f", "A", "B", [[21, 0], [21, 0]]), weight: 0 }]).singles;
+    expect(friendly.size).toBe(0);
   });
 
   it("change over the last tournament", () => {

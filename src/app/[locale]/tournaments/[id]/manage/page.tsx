@@ -62,6 +62,7 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
           action={saveTournament.bind(null, id)}
           tournament={tournament}
           disciplineLocked={participants.length > 0}
+          canSetWeight={staff?.role === "owner"}
           cancelHref={`/tournaments/${id}/manage`}
         />
       </details>
