@@ -30,6 +30,11 @@ export function fullName(p: Player, locale: string): string {
   return [firstName(p, locale), lastName(p, locale)].filter(Boolean).join(" ");
 }
 
+/** "Last First" — for lists sorted by surname. */
+export function surnameFirst(p: Player, locale: string): string {
+  return [lastName(p, locale), firstName(p, locale)].filter(Boolean).join(" ");
+}
+
 export function ageOn(birthDate: string, today = new Date()): number {
   const b = new Date(birthDate);
   let age = today.getFullYear() - b.getFullYear();

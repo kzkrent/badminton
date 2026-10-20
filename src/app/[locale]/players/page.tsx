@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { fullName, PLAYER_COLUMNS, type Player } from "@/lib/players";
+import { PLAYER_COLUMNS, surnameFirst, type Player } from "@/lib/players";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 
 export default async function PlayersPage({ params, searchParams }: PageProps<"/[locale]/players">) {
@@ -44,7 +44,7 @@ export default async function PlayersPage({ params, searchParams }: PageProps<"/
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {players.map((p) => {
-            const name = fullName(p, locale);
+            const name = surnameFirst(p, locale);
             return (
               <li key={p.id}>
                 <Link href={`/players/${p.id}`} className="card flex items-center gap-3 p-3 hover:border-accent">
