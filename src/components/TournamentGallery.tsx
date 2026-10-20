@@ -120,7 +120,20 @@ export function TournamentGallery({ tournamentId, photos, staff }: Props) {
       ) : (
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {photos.map((p, i) => (
-            <li key={p.id}>
+            <li key={p.id} className="group relative">
+              {canDelete(p) && (
+                <button
+                  type="button"
+                  onClick={() => remove(p)}
+                  className="absolute top-1.5 right-1.5 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white hover:bg-danger sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                  aria-label={t("delete")}
+                  title={t("delete")}
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                  </svg>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setOpen(i)}
