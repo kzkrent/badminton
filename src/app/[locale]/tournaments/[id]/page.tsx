@@ -40,7 +40,6 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
   const standings = computeStandings(
     participants.map((p) => p.id),
     matches,
-    tournament.game_target,
   );
 
   const cover = photoUrl(tournament.cover_path, GALLERY_BUCKET);
@@ -88,11 +87,10 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
             unresolvedTies={standings.unresolvedTies}
             participants={participants}
             matches={matches}
-            target={tournament.game_target}
           />
 
           <h2 className="mt-8 mb-3 text-lg font-semibold">{t("schedule")}</h2>
-          <FilteredSchedule matches={matches} participants={participants} target={tournament.game_target} />
+          <FilteredSchedule matches={matches} participants={participants} />
         </>
       )}
 

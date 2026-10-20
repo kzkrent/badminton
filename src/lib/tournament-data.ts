@@ -60,9 +60,9 @@ export async function loadPlayerHistory(playerId: string) {
     const participant = mine.find((p) => p.tournament_id === tournament.id)!;
     const tMatches = matches.filter((m) => m.tournament_id === tournament.id);
     const ids = allParticipants.filter((p) => p.tournament_id === tournament.id).map((p) => p.id);
-    const standings = computeStandings(ids, tMatches, tournament.game_target);
-    const record = addMatches(emptyRecord(), participant.id, tMatches, tournament.game_target);
-    addMatches(total, participant.id, tMatches, tournament.game_target);
+    const standings = computeStandings(ids, tMatches);
+    const record = addMatches(emptyRecord(), participant.id, tMatches);
+    addMatches(total, participant.id, tMatches);
     return {
       tournament,
       participant,

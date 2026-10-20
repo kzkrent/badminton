@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isValidGame, matchPoints, outcome, validateMatch, type GameRules } from "./scoring";
+import { displayGames, isValidGame, matchPoints, outcome, validateMatch, type GameRules } from "./scoring";
 
 const r21: GameRules = { target: 21, balance: true, cap: 30 };
 const r21nb: GameRules = { target: 21, balance: false, cap: null };
@@ -65,18 +65,18 @@ describe("matchPoints", () => {
 
 describe("outcome", () => {
   const m = { home_id: "A", away_id: "B", games: null, walkover_winner_id: null };
-  it("unplayed", () => expect(outcome(m, 21)).toBeNull());
+  it("unplayed", () => expect(outcome(m)).toBeNull());
   it("walkover", () =>
-    expect(outcome({ ...m, walkover_winner_id: "B" }, 21)).toEqual({
+    expect(outcome({ ...m, walkover_winner_id: "B" })).toEqual({
       homeGames: 0,
       awayGames: 2,
       homePoints: 0,
       awayPoints: 3,
       homeShuttles: 0,
-      awayShuttles: 42,
+      awayShuttles: 0,
     }));
   it("played", () =>
-    expect(outcome({ ...m, games: [[21, 15], [18, 21], [21, 19]] }, 21)).toEqual({
+    expect(outcome({ ...m, games: [[21, 15], [18, 21], [21, 19]] })).toEqual({
       homeGames: 2,
       awayGames: 1,
       homePoints: 2,
@@ -84,4 +84,15 @@ describe("outcome", () => {
       homeShuttles: 60,
       awayShuttles: 55,
     }));
+});
+
+describe("displayGames", () => {
+  const m = { home_id: "A", away_id: "B", games: null, walkover_winner_id: null };
+  it("walkover shows the match score", () => {
+    expect(displayGames({ ...m, walkover_winner_id: "A" })).toEqual([[2, 0]]);
+    expect(displayGames({ ...m, walkover_winner_id: "B" })).toEqual([[0, 2]]);
+  });
+  it("played games as entered", () => {
+    expect(displayGames({ ...m, games: [[21, 15], [21, 19]] })).toEqual([[21, 15], [21, 19]]);
+  });
 });

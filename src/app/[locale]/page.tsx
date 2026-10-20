@@ -147,7 +147,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               const parts = focusParticipants.filter((p) => p.tournament_id === x.id);
               const ms = liveMatches.filter((m) => m.tournament_id === x.id);
               const played = ms.filter((m) => m.games || m.walkover_winner_id).length;
-              const leaderRow = computeStandings(parts.map((p) => p.id), ms, x.game_target).rows[0];
+              const leaderRow = computeStandings(parts.map((p) => p.id), ms).rows[0];
               const leader = leaderRow?.place ? parts.find((p) => p.id === leaderRow.id) : undefined;
               return (
                 <li key={x.id}>
@@ -186,7 +186,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </div>
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
                       <span className="truncate font-medium">{participantName(home, locale)}</span>
-                      <MatchScore match={m} target={tour.game_target} />
+                      <MatchScore match={m} />
                       <span className="truncate text-right font-medium">{participantName(away, locale)}</span>
                     </div>
                   </Link>

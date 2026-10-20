@@ -15,14 +15,13 @@ type Props = {
   unresolvedTies: string[][];
   participants: Participant[];
   matches: Match[];
-  target: number;
 };
 
 const COLS = ["played", "for", "against", "diff", "points", "place"] as const;
 /** Shuttles for/against stay on wider screens; the difference column carries them on phones. */
 const HIDE_ON_MOBILE = new Set<string>(["for", "against"]);
 
-export function StandingsTable({ rows, unresolvedTies, participants, matches, target }: Props) {
+export function StandingsTable({ rows, unresolvedTies, participants, matches }: Props) {
   const t = useTranslations("standings");
   const locale = useLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -99,7 +98,7 @@ export function StandingsTable({ rows, unresolvedTies, participants, matches, ta
                   {open && (
                     <tr className="border-b border-border bg-background">
                       <td colSpan={COLS.length + 1} className="px-4 py-3">
-                        <ParticipantMatches participant={p} matches={matches} byId={byId} target={target} />
+                        <ParticipantMatches participant={p} matches={matches} byId={byId} />
                       </td>
                     </tr>
                   )}
@@ -124,12 +123,10 @@ function ParticipantMatches({
   participant,
   matches,
   byId,
-  target,
 }: {
   participant: Participant;
   matches: Match[];
   byId: Map<string, Participant>;
-  target: number;
 }) {
   const t = useTranslations("tournaments");
   const ts = useTranslations("standings");
@@ -150,7 +147,7 @@ function ParticipantMatches({
               {participantName(home, locale)}
             </span>
             <span className="text-center">
-              <MatchScore match={m} target={target} />
+              <MatchScore match={m} />
             </span>
             <span className={`truncate text-right ${away.id === participant.id ? "font-medium" : ""}`}>
               {participantName(away, locale)}

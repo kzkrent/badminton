@@ -5,10 +5,10 @@ import { useTranslations } from "next-intl";
 import type { Match, Participant } from "@/lib/tournaments";
 import { ScheduleView } from "./ScheduleView";
 
-type Props = { matches: Match[]; participants: Participant[]; target: number };
+type Props = { matches: Match[]; participants: Participant[] };
 
 /** Schedule with a multi-select tour filter; nothing selected = all tours. */
-export function FilteredSchedule({ matches, participants, target }: Props) {
+export function FilteredSchedule({ matches, participants }: Props) {
   const t = useTranslations("tournaments");
   const ts = useTranslations("standings");
   const tours = [...new Set(matches.map((m) => m.tour))].sort((a, b) => a - b);
@@ -43,7 +43,6 @@ export function FilteredSchedule({ matches, participants, target }: Props) {
       <ScheduleView
         matches={matches}
         participants={participants}
-        target={target}
         tours={selected.length ? selected : undefined}
       />
     </div>

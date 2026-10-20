@@ -5,13 +5,13 @@ import { displayGames } from "@/lib/scoring";
 import { participantName, type Match, type Participant } from "@/lib/tournaments";
 import { ParticipantLabel } from "./ParticipantLabel";
 
-type Props = { matches: Match[]; participants: Participant[]; target: number; tours?: number[] };
+type Props = { matches: Match[]; participants: Participant[]; tours?: number[] };
 
 /** Score with the winner's games emphasised; walkovers marked. */
-export function MatchScore({ match, target }: { match: Match; target: number }) {
+export function MatchScore({ match }: { match: Match }) {
   const t = useTranslations("tournaments");
   const ts = useTranslations("standings");
-  const games = displayGames(match, target);
+  const games = displayGames(match);
   if (!games) return <span className="text-xs text-muted">{t("notPlayed")}</span>;
   return (
     <span className="text-xs whitespace-nowrap tabular-nums">
@@ -27,7 +27,7 @@ export function MatchScore({ match, target }: { match: Match; target: number }) 
 }
 
 /** Matches grouped by tour, with who rests in each tour. */
-export function ScheduleView({ matches, participants, target, tours }: Props) {
+export function ScheduleView({ matches, participants, tours }: Props) {
   const t = useTranslations("tournaments");
   const locale = useLocale();
   const byId = new Map(participants.map((p) => [p.id, p]));
@@ -54,7 +54,7 @@ export function ScheduleView({ matches, participants, target, tours }: Props) {
                   <li key={m.id} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2 text-sm sm:gap-3 sm:px-4">
                     <ParticipantLabel participant={home} locale={locale} size={24} photosOnMobile={false} />
                     <span className="text-center">
-                      <MatchScore match={m} target={target} />
+                      <MatchScore match={m} />
                     </span>
                     <span className="flex min-w-0 justify-end text-right">
                       <ParticipantLabel participant={away} locale={locale} size={24} photosOnMobile={false} />

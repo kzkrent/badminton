@@ -57,8 +57,8 @@ export function matchPoints(homeGames: number, awayGames: number): [number, numb
   return [homeGames, awayGames];
 }
 
-/** Result of a match for the table, or null if not played. Walkover = 2:0, each game target:0 (SPEC 5.4). */
-export function outcome(m: MatchLike, target: number): Outcome | null {
+/** Result of a match for the table, or null if not played. Walkover = 2:0 in games, no shuttles counted (SPEC 5.4). */
+export function outcome(m: MatchLike): Outcome | null {
   if (m.walkover_winner_id) {
     const homeWins = m.walkover_winner_id === m.home_id;
     return {
@@ -66,8 +66,8 @@ export function outcome(m: MatchLike, target: number): Outcome | null {
       awayGames: homeWins ? 0 : 2,
       homePoints: homeWins ? 3 : 0,
       awayPoints: homeWins ? 0 : 3,
-      homeShuttles: homeWins ? 2 * target : 0,
-      awayShuttles: homeWins ? 0 : 2 * target,
+      homeShuttles: 0,
+      awayShuttles: 0,
     };
   }
   if (!m.games?.length) return null;
@@ -82,12 +82,8 @@ export function outcome(m: MatchLike, target: number): Outcome | null {
   return o;
 }
 
-/** Display score, e.g. "21:15, 18:21, 21:19" or walkover games. */
-export function displayGames(m: MatchLike, target: number): Game[] | null {
-  if (m.walkover_winner_id) {
-    const homeWins = m.walkover_winner_id === m.home_id;
-    const g: Game = homeWins ? [target, 0] : [0, target];
-    return [g, g];
-  }
+/** Display score, e.g. "21:15, 18:21, 21:19"; a walkover shows as the match score 2:0. */
+export function displayGames(m: MatchLike): Game[] | null {
+  if (m.walkover_winner_id) return [m.walkover_winner_id === m.home_id ? [2, 0] : [0, 2]];
   return m.games?.length ? m.games : null;
 }

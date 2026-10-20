@@ -21,12 +21,12 @@ export type Standings = {
 
 type Totals = Omit<StandingRow, "place" | "order">;
 
-function totals(ids: string[], matches: MatchLike[], target: number): Map<string, Totals> {
+function totals(ids: string[], matches: MatchLike[]): Map<string, Totals> {
   const t = new Map<string, Totals>(
     ids.map((id) => [id, { id, played: 0, shuttlesFor: 0, shuttlesAgainst: 0, diff: 0, points: 0 }]),
   );
   for (const m of matches) {
-    const o = outcome(m, target);
+    const o = outcome(m);
     const home = t.get(m.home_id);
     const away = t.get(m.away_id);
     if (!o || !home || !away) continue;
@@ -59,8 +59,8 @@ function groupBy<T>(items: T[], key: (x: T) => number): T[][] {
  * points → head-to-head mini-table (re-applied to every still-tied subgroup)
  * → overall shuttle difference → fewer shuttles conceded → shared place.
  */
-export function computeStandings(ids: string[], matches: MatchLike[], target: number): Standings {
-  const all = totals(ids, matches, target);
+export function computeStandings(ids: string[], matches: MatchLike[]): Standings {
+  const all = totals(ids, matches);
   const anyPlayed = [...all.values()].some((r) => r.played > 0);
   const unresolvedTies: string[][] = [];
 
@@ -72,7 +72,6 @@ export function computeStandings(ids: string[], matches: MatchLike[], target: nu
     const mini = totals(
       group,
       matches.filter((m) => set.has(m.home_id) && set.has(m.away_id)),
-      target,
     );
     const byMini = groupBy(
       [...group].sort((a, b) => mini.get(b)!.points - mini.get(a)!.points),

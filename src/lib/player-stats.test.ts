@@ -14,7 +14,7 @@ describe("addMatches", () => {
       { ...base, home_id: "A", away_id: "F" }, // unplayed
       { ...base, home_id: "B", away_id: "C", games: [[21, 0], [21, 0]] }, // not A
     ];
-    expect(addMatches(emptyRecord(), "A", matches, 21)).toEqual({
+    expect(addMatches(emptyRecord(), "A", matches)).toEqual({
       played: 4,
       wins: 2,
       losses: 1,

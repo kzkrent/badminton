@@ -13,11 +13,11 @@ export type PlayerRecord = {
 export const emptyRecord = (): PlayerRecord => ({ played: 0, wins: 0, losses: 0, draws: 0, gamesWon: 0, gamesLost: 0 });
 
 /** Adds a participant's played matches to a running record. */
-export function addMatches(rec: PlayerRecord, participantId: string, matches: MatchLike[], target: number): PlayerRecord {
+export function addMatches(rec: PlayerRecord, participantId: string, matches: MatchLike[]): PlayerRecord {
   for (const m of matches) {
     const isHome = m.home_id === participantId;
     if (!isHome && m.away_id !== participantId) continue;
-    const o = outcome(m, target);
+    const o = outcome(m);
     if (!o) continue;
     const own = isHome ? o.homeGames : o.awayGames;
     const opp = isHome ? o.awayGames : o.homeGames;
