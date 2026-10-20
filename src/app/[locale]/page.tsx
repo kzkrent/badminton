@@ -17,6 +17,7 @@ import {
   type Tournament,
 } from "@/lib/tournaments";
 import { TournamentCard } from "@/components/TournamentCard";
+import { ORGANIZER_COLUMNS, type Organizer } from "@/lib/organizers";
 import { AnnouncementDetails } from "@/components/AnnouncementDetails";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { MatchScore } from "@/components/ScheduleView";
@@ -93,6 +94,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     : { data: [] };
   const playersById = new Map(((topPlayers ?? []) as Player[]).map((p) => [p.id, p]));
 
+  const orgIds = [...new Set(upcoming.map((x) => x.organizer_id).filter((v): v is string => !!v))];
+  const { data: orgRows } = orgIds.length
+    ? await supabase.from("organizers").select(ORGANIZER_COLUMNS).in("id", orgIds)
+    : { data: [] };
+  const organizersById = new Map(((orgRows ?? []) as Organizer[]).map((o) => [o.id, o]));
+
   const nothing = !upcoming.length && !live.length && !recent.length && !tops.length;
 
   return (
@@ -117,7 +124,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               return (
                 <li key={x.id}>
                   <TournamentCard tournament={x} locale={locale}>
-                    <AnnouncementDetails tournament={x} locale={locale} clampText />
+                    <AnnouncementDetails
+                      tournament={x}
+                      locale={locale}
+                      organizer={x.organizer_id ? organizersById.get(x.organizer_id) : null}
+                      clampText
+                    />
                     <p className="mt-2 text-xs text-muted">{tt("participantsCount", { count })}</p>
                   </TournamentCard>
                 </li>

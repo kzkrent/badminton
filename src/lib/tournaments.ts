@@ -33,10 +33,11 @@ export type Tournament = {
   announcement_ru: string | null;
   announcement_en: string | null;
   registration_contact: string | null;
+  organizer_id: string | null;
 };
 
 export const TOURNAMENT_COLUMNS =
-  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact";
+  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact, organizer_id";
 
 export type Participant = {
   id: string;

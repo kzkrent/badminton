@@ -2,7 +2,7 @@ import { createClient } from "./supabase/server";
 
 export type StaffRole = "owner" | "admin";
 
-export type Staff = { email: string; role: StaffRole };
+export type Staff = { email: string; role: StaffRole; organizer_id: string | null };
 
 /** The signed-in organizer, or null for viewers. */
 export async function getStaff(): Promise<Staff | null> {
@@ -14,7 +14,7 @@ export async function getStaff(): Promise<Staff | null> {
 
   const { data } = await supabase
     .from("staff")
-    .select("email, role")
+    .select("email, role, organizer_id")
     .eq("email", user.email.toLowerCase())
     .maybeSingle();
   return (data as Staff | null) ?? null;

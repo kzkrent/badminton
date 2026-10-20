@@ -1,7 +1,8 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { organizerName, type Organizer } from "@/lib/organizers";
 import type { TournamentFormState } from "@/app/actions/tournaments";
 import { DISCIPLINES, isPreStart, type Tournament } from "@/lib/tournaments";
 import { Link } from "@/i18n/navigation";
@@ -13,10 +14,22 @@ type Props = {
   disciplineLocked?: boolean;
   /** Only the owner sets the rating weight. */
   canSetWeight?: boolean;
+  organizers: Organizer[];
+  /** Pre-selected organizer for a new tournament (the signed-in user's profile). */
+  defaultOrganizerId?: string | null;
   cancelHref: string;
 };
 
-export function TournamentForm({ action, tournament: t, disciplineLocked, canSetWeight, cancelHref }: Props) {
+export function TournamentForm({
+  action,
+  tournament: t,
+  disciplineLocked,
+  canSetWeight,
+  organizers,
+  defaultOrganizerId,
+  cancelHref,
+}: Props) {
+  const locale = useLocale();
   const tt = useTranslations("tournaments");
   const tc = useTranslations("common");
   const te = useTranslations("errors");
@@ -93,6 +106,25 @@ export function TournamentForm({ action, tournament: t, disciplineLocked, canSet
 
       <fieldset className="space-y-4 rounded-lg border border-border p-4">
         <legend className="px-1 text-sm font-semibold">{tt("announcementSection")}</legend>
+        <div>
+          <label htmlFor="organizer_id" className="label">
+            {tt("organizer")}
+          </label>
+          <select
+            id="organizer_id"
+            name="organizer_id"
+            defaultValue={t ? (t.organizer_id ?? "") : (defaultOrganizerId ?? "")}
+            className="input"
+          >
+            <option value="">—</option>
+            {organizers.map((o) => (
+              <option key={o.id} value={o.id}>
+                {organizerName(o, locale)}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted">{tt("organizerHint")}</p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
             <label htmlFor="start_time" className="label">
@@ -130,7 +162,7 @@ export function TournamentForm({ action, tournament: t, disciplineLocked, canSet
         <p className="-mt-2 text-xs text-muted">{tt("announcementHint")}</p>
         <div>
           <label htmlFor="registration_contact" className="label">
-            {tt("registrationContact")}
+            {tt("extraContact")}
           </label>
           <input
             id="registration_contact"

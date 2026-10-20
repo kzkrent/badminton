@@ -15,7 +15,8 @@
     "roleOwner": "Owner",
     "roleAdmin": "Admin",
     "ratings": "Ratings",
-    "partners": "Our partners"
+    "partners": "Our partners",
+    "organizers": "Organizers"
   },
   "home": {
     "title": "Samui Badminton League",
@@ -197,7 +198,10 @@
     "announcementEn": "Announcement text (English)",
     "announcementHint": "About the event, prizes, entry fee — what players will see",
     "registrationContact": "Registration contact",
-    "registrationContactHint": "Link, phone, Telegram @handle or LINE ID"
+    "registrationContactHint": "Link, phone, Telegram @handle or LINE ID",
+    "organizer": "Organizer",
+    "organizerHint": "Their name and contact buttons appear in the announcement. Profiles live under Organizers.",
+    "extraContact": "Additional registration contact"
   },
   "results": {
     "title": "Enter results",
@@ -293,6 +297,32 @@
   },
   "announce": {
     "countdown": "{days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
-    "register": "Register"
+    "register": "Register",
+    "organizer": "Organizer",
+    "alsoContact": "Also"
+  },
+  "organizers": {
+    "title": "Organizers",
+    "intro": "The organizer's name and contacts appear in tournament announcements so players can sign up.",
+    "mine": "My profile",
+    "you": "you",
+    "noMine": "You don't have an organizer profile yet.",
+    "createMine": "Create my profile",
+    "all": "All organizers",
+    "empty": "No other organizers yet.",
+    "add": "Add organizer",
+    "name": "Name",
+    "nameEn": "Name (English)",
+    "phone": "Phone",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "line": "LINE ID",
+    "hint": "Fill in at least one contact — the announcement will show contact buttons. Phone in international format (+66…).",
+    "nameRequired": "Enter a name",
+    "deleteConfirm": "Delete this organizer profile? It will disappear from announcements.",
+    "btn_phone": "Call",
+    "btn_whatsapp": "WhatsApp",
+    "btn_telegram": "Telegram",
+    "btn_line": "LINE"
   }
 }

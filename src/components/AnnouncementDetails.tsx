@@ -1,6 +1,8 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { daysUntil } from "@/lib/dates";
 import { tournamentAnnouncement, tournamentVenue, type Tournament } from "@/lib/tournaments";
+import { organizerName, type Organizer } from "@/lib/organizers";
+import { ContactButtons } from "./ContactButtons";
 
 /** Link for a free-text contact: URLs and phone numbers become clickable. */
 function ContactLink({ contact }: { contact: string }) {
@@ -38,10 +40,12 @@ export async function Countdown({ date }: { date: string | null }) {
 export async function AnnouncementDetails({
   tournament: t,
   locale,
+  organizer,
   clampText = false,
 }: {
   tournament: Tournament;
   locale: string;
+  organizer?: Organizer | null;
   clampText?: boolean;
 }) {
   const ta = await getTranslations("announce");
@@ -71,9 +75,18 @@ export async function AnnouncementDetails({
         </p>
       )}
       {text && <p className={`whitespace-pre-line text-muted ${clampText ? "line-clamp-3" : ""}`}>{text}</p>}
+      {organizer && (
+        <div className="space-y-2 pt-1">
+          <p>
+            <span className="text-muted">{ta("organizer")}:</span>{" "}
+            <span className="font-medium">{organizerName(organizer, locale)}</span>
+          </p>
+          <ContactButtons organizer={organizer} />
+        </div>
+      )}
       {t.registration_contact && (
         <p className="flex flex-wrap gap-x-2">
-          <span className="text-muted">{ta("register")}:</span>
+          <span className="text-muted">{ta(organizer ? "alsoContact" : "register")}:</span>
           <ContactLink contact={t.registration_contact} />
         </p>
       )}

@@ -65,6 +65,7 @@ export async function saveTournament(
     announcement_ru: text(fd, "announcement_ru"),
     announcement_en: text(fd, "announcement_en"),
     registration_contact: text(fd, "registration_contact"),
+    organizer_id: /^[0-9a-f-]{36}$/i.test(String(fd.get("organizer_id") ?? "")) ? String(fd.get("organizer_id")) : null,
   };
 
   // Rating weight is the owner's call (SPEC 8); admins' forms don't send it.

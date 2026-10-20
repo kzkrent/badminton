@@ -11,6 +11,7 @@ import { FilteredSchedule } from "@/components/FilteredSchedule";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { AnnouncementDetails } from "@/components/AnnouncementDetails";
 import { isPreStart } from "@/lib/tournaments";
+import { ORGANIZER_COLUMNS } from "@/lib/organizers";
 import { TournamentGallery, type TournamentPhoto } from "@/components/TournamentGallery";
 import { createClient } from "@/lib/supabase/server";
 import { GALLERY_BUCKET, photoUrl } from "@/lib/supabase/env";
@@ -33,6 +34,9 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
     .eq("tournament_id", id)
     .order("created_at");
   const photos = (photoRows ?? []) as TournamentPhoto[];
+  const { data: organizer } = tournament.organizer_id
+    ? await supabase.from("organizers").select(ORGANIZER_COLUMNS).eq("id", tournament.organizer_id).maybeSingle()
+    : { data: null };
   const standings = computeStandings(
     participants.map((p) => p.id),
     matches,
@@ -60,7 +64,7 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
       {isPreStart(tournament.status) ? (
         <>
           <div className="card mb-8 p-4">
-            <AnnouncementDetails tournament={tournament} locale={locale} />
+            <AnnouncementDetails tournament={tournament} locale={locale} organizer={organizer} />
           </div>
           <h2 className="mb-3 text-lg font-semibold">{t("participantsCount", { count: participants.length })}</h2>
           {participants.length === 0 ? (

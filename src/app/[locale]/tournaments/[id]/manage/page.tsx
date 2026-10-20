@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadTournament } from "@/lib/tournament-data";
 import { PLAYER_COLUMNS, type Player } from "@/lib/players";
 import { canEdit, isPreStart } from "@/lib/tournaments";
+import { ORGANIZER_COLUMNS, type Organizer } from "@/lib/organizers";
 import {
   addParticipant,
   backToDraft,
@@ -45,6 +46,8 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
   const tr = await getTranslations("results");
   const isDraft = isPreStart(tournament.status);
   const byId = new Map(participants.map((p) => [p.id, p]));
+  const { data: orgRows } = await (await createClient()).from("organizers").select(ORGANIZER_COLUMNS).order("name");
+  const organizers = (orgRows ?? []) as Organizer[];
 
   let players: Player[] = [];
   if (isDraft) {
@@ -71,6 +74,7 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
           tournament={tournament}
           disciplineLocked={participants.length > 0}
           canSetWeight={staff?.role === "owner"}
+          organizers={organizers}
           cancelHref={`/tournaments/${id}/manage`}
         />
       </details>
