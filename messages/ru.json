@@ -85,7 +85,14 @@
     "startRatingHint": "Начальное значение для рейтинга Эло; если пусто — 1500",
     "ratings": "Рейтинг Эло",
     "ratingMatches": "{count, plural, one {# матч} few {# матча} many {# матчей} other {# матча}}",
-    "noRating": "нет матчей"
+    "noRating": "нет матчей",
+    "sortBy": "Сортировка",
+    "sort_name": "Фамилия",
+    "sort_rating_singles": "Рейтинг: одиночный",
+    "sort_rating_doubles": "Рейтинг: парный",
+    "sort_rating_mixed": "Рейтинг: микст",
+    "sort_club": "Клуб",
+    "allGenders": "Все"
   },
   "staff": {
     "title": "Администраторы",

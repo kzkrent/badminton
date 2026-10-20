@@ -85,7 +85,14 @@
     "startRatingHint": "Initial Elo value; 1500 if empty",
     "ratings": "Elo rating",
     "ratingMatches": "{count, plural, one {# match} other {# matches}}",
-    "noRating": "no matches"
+    "noRating": "no matches",
+    "sortBy": "Sort",
+    "sort_name": "Surname",
+    "sort_rating_singles": "Rating: singles",
+    "sort_rating_doubles": "Rating: doubles",
+    "sort_rating_mixed": "Rating: mixed",
+    "sort_club": "Club",
+    "allGenders": "All"
   },
   "staff": {
     "title": "Admins",
