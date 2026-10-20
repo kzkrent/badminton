@@ -5,6 +5,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
@@ -30,6 +31,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
         <NextIntlClientProvider>
           <Header />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+          <Footer />
         </NextIntlClientProvider>
       </body>
     </html>

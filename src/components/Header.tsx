@@ -14,7 +14,7 @@ export async function Header() {
         <Link href="/" className="font-semibold">
           🏸 {t("appName")}
         </Link>
-        <nav className="flex gap-4 text-sm">
+        <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <Link href="/" className="hover:text-accent">
             {t("tournaments")}
           </Link>
@@ -23,6 +23,9 @@ export async function Header() {
           </Link>
           <Link href="/ratings" className="hover:text-accent">
             {t("ratings")}
+          </Link>
+          <Link href="/partners" className="hover:text-accent">
+            {t("partners")}
           </Link>
           {isOwner(staff) && (
             <Link href="/staff" className="hover:text-accent">

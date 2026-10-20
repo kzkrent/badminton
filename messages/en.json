@@ -14,7 +14,8 @@
     "language": "Language",
     "roleOwner": "Owner",
     "roleAdmin": "Admin",
-    "ratings": "Ratings"
+    "ratings": "Ratings",
+    "partners": "Our partners"
   },
   "home": {
     "title": "Tournaments"
@@ -244,5 +245,25 @@
     "removeConfirm": "Remove the cover?",
     "hint": "Use a landscape image with the subject centred: edges get cropped (3:1 on the page, 16:7 in the list).",
     "error": "Could not upload the cover. Try another file (JPG, PNG, WebP)."
+  },
+  "partners": {
+    "title": "Our partners",
+    "intro": "Companies supporting the Samui badminton league. Thank you!",
+    "empty": "No partners yet.",
+    "add": "Add partner",
+    "name": "Name",
+    "nameEn": "Name (English)",
+    "url": "Website",
+    "sort": "Order",
+    "descriptionRu": "Description (Russian)",
+    "descriptionEn": "Description (English)",
+    "logo": "Logo",
+    "logoHint": "A PNG with a transparent background works best; JPG and WebP are fine too",
+    "removeLogo": "Remove logo",
+    "logoError": "Could not upload the logo. Try PNG or JPG.",
+    "nameRequired": "Enter a name",
+    "badUrl": "Invalid website address",
+    "visit": "Visit website",
+    "deleteConfirm": "Delete this partner?"
   }
 }
