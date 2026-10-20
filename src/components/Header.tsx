@@ -1,61 +1,56 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { getStaff, isOwner } from "@/lib/auth";
+import { getStaff } from "@/lib/auth";
 import { signOut } from "@/app/actions/auth";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { NavLinks } from "./NavLinks";
+import { BottomNav } from "./BottomNav";
+import { UserIcon } from "./NavIcons";
 
 export async function Header() {
   const t = await getTranslations("common");
   const staff = await getStaff();
+  const role = staff?.role ?? null;
 
   return (
-    <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-        <Link href="/" className="font-semibold">
-          🏸 {t("appName")}
-        </Link>
-        <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          <Link href="/tournaments" className="hover:text-accent">
-            {t("tournaments")}
+    <>
+      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur sm:static sm:bg-surface">
+        <div className="mx-auto flex max-w-5xl items-center gap-x-6 gap-y-2 px-4 py-2.5 sm:flex-wrap sm:py-3">
+          <Link href="/" className="truncate font-semibold">
+            🏸 <span className="sm:hidden">{t("appNameShort")}</span>
+            <span className="hidden sm:inline">{t("appName")}</span>
           </Link>
-          <Link href="/players" className="hover:text-accent">
-            {t("players")}
-          </Link>
-          <Link href="/ratings" className="hover:text-accent">
-            {t("ratings")}
-          </Link>
-          <Link href="/partners" className="hover:text-accent">
-            {t("partners")}
-          </Link>
-          {staff && (
-            <Link href="/organizers" className="hover:text-accent">
-              {t("organizers")}
-            </Link>
-          )}
-          {isOwner(staff) && (
-            <Link href="/staff" className="hover:text-accent">
-              {t("staff")}
-            </Link>
-          )}
-        </nav>
-        <div className="ml-auto flex items-center gap-3 text-sm">
-          <LocaleSwitcher />
-          {staff ? (
-            <>
-              <span className="hidden text-muted sm:inline" title={staff.email}>
-                {staff.role === "owner" ? t("roleOwner") : t("roleAdmin")}
-              </span>
-              <form action={signOut}>
-                <button className="btn-secondary px-3 py-1.5">{t("logout")}</button>
-              </form>
-            </>
-          ) : (
-            <Link href="/login" className="btn-secondary px-3 py-1.5">
-              {t("login")}
-            </Link>
-          )}
+          <NavLinks role={role} />
+          <div className="ml-auto flex shrink-0 items-center gap-3 text-sm">
+            <LocaleSwitcher />
+            {staff ? (
+              <>
+                <span className="hidden text-muted sm:inline" title={staff.email}>
+                  {staff.role === "owner" ? t("roleOwner") : t("roleAdmin")}
+                </span>
+                {/* On phones sign-out lives in the bottom bar's "More" sheet. */}
+                <form action={signOut} className="hidden sm:block">
+                  <button className="btn-secondary px-3 py-1.5">{t("logout")}</button>
+                </form>
+                <span
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-contrast sm:hidden"
+                  title={staff.role === "owner" ? t("roleOwner") : t("roleAdmin")}
+                >
+                  <UserIcon />
+                </span>
+              </>
+            ) : (
+              <Link href="/login" className="btn-secondary px-3 py-1.5" aria-label={t("login")}>
+                <span className="hidden sm:inline">{t("login")}</span>
+                <span className="sm:hidden">
+                  <UserIcon />
+                </span>
+              </Link>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <BottomNav role={role} />
+    </>
   );
 }

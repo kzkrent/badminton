@@ -16,7 +16,11 @@
     "roleAdmin": "Admin",
     "ratings": "Ratings",
     "partners": "Our partners",
-    "organizers": "Organizers"
+    "organizers": "Organizers",
+    "appNameShort": "Samui League",
+    "home": "Home",
+    "more": "More",
+    "menu": "Menu"
   },
   "home": {
     "title": "Samui Badminton League",
