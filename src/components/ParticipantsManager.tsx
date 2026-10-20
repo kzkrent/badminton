@@ -9,6 +9,7 @@ import { isDoubles, type Discipline, type Participant } from "@/lib/tournaments"
 import { ParticipantLabel } from "./ParticipantLabel";
 import { PlayerForm } from "./PlayerForm";
 import { PlayerPicker } from "./PlayerPicker";
+import { TeamNameEditor } from "./TeamNameEditor";
 
 type Props = {
   discipline: Discipline;
@@ -16,12 +17,13 @@ type Props = {
   participants: Participant[];
   addAction: (prev: ParticipantFormState, fd: FormData) => Promise<ParticipantFormState>;
   removeAction: (participantId: string) => Promise<void>;
+  renameAction: (participantId: string, prev: ParticipantFormState, fd: FormData) => Promise<ParticipantFormState>;
 };
 
 /** Gender required in each slot; mixed pairs are entered as man + woman. */
 const SLOTS: Record<Discipline, Gender[]> = { M: ["M"], F: ["F"], MF: ["M", "F"], MM: ["M", "M"], FF: ["F", "F"] };
 
-export function ParticipantsManager({ discipline, players, participants, addAction, removeAction }: Props) {
+export function ParticipantsManager({ discipline, players, participants, addAction, removeAction, renameAction }: Props) {
   const t = useTranslations("tournaments");
   const te = useTranslations("errors");
   const locale = useLocale();
@@ -31,12 +33,14 @@ export function ParticipantsManager({ discipline, players, participants, addActi
   const [extraPlayers, setExtraPlayers] = useState<Player[]>([]);
   const [selected, setSelected] = useState<(Player | null)[]>(slots.map(() => null));
   const [teamName, setTeamName] = useState("");
+  const [teamNameEn, setTeamNameEn] = useState("");
   const [creatingFor, setCreatingFor] = useState<number | null>(null);
   const [state, formAction, pending] = useActionState(async (prev: ParticipantFormState, fd: FormData) => {
     const result = await addAction(prev, fd);
     if (result.ok) {
       setSelected(slots.map(() => null));
       setTeamName("");
+      setTeamNameEn("");
     }
     return result;
   }, {});
@@ -76,7 +80,7 @@ export function ParticipantsManager({ discipline, players, participants, addActi
   return (
     <div className="space-y-4">
       <form action={formAction} className="card space-y-4 p-4">
-        <div className={`grid gap-4 ${doubles ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+        <div className="grid gap-4 sm:grid-cols-2">
           {slots.map((_, i) => (
             <PlayerPicker
               key={i}
@@ -102,6 +106,21 @@ export function ParticipantsManager({ discipline, players, participants, addActi
               />
             </div>
           )}
+          {doubles && (
+            <div>
+              <label htmlFor="team_name_en" className="label">
+                {t("teamNameEn")}
+              </label>
+              <input
+                id="team_name_en"
+                name="team_name_en"
+                value={teamNameEn}
+                onChange={(e) => setTeamNameEn(e.target.value)}
+                placeholder={t("teamNameEnHint")}
+                className="input"
+              />
+            </div>
+          )}
         </div>
         {selected.map((p, i) => p && <input key={i} type="hidden" name={`player${i + 1}_id`} value={p.id} />)}
         {error && <p className="text-sm text-danger">{error}</p>}
@@ -115,11 +134,12 @@ export function ParticipantsManager({ discipline, players, participants, addActi
       ) : (
         <ul className="card divide-y divide-border">
           {participants.map((p, i) => (
-            <li key={p.id} className="flex items-center gap-3 px-4 py-2">
+            <li key={p.id} className="flex flex-wrap items-center gap-3 px-4 py-2">
               <span className="w-6 text-right text-sm text-muted">{i + 1}</span>
               <span className="min-w-0 flex-1">
                 <ParticipantLabel participant={p} locale={locale} />
               </span>
+              {doubles && <TeamNameEditor participant={p} save={renameAction.bind(null, p.id)} />}
               <button
                 type="button"
                 onClick={() => removeAction(p.id)}

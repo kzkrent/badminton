@@ -138,7 +138,7 @@
     "player": "Player",
     "player1": "Player 1",
     "player2": "Player 2",
-    "teamName": "Team name",
+    "teamName": "Team name (Russian)",
     "teamNameHint": "Defaults to “Last1 / Last2”",
     "searchPlayer": "Start typing a name",
     "noMatches": "No matches",
@@ -168,7 +168,10 @@
     "weightHint": "Multiplies rating changes: 1 normal, 2 twice as important, 0 not rated",
     "weightError": "Weight must be 0–3 in steps of 0.25",
     "summaryWeight": "rating weight ×{w}",
-    "summaryUnrated": "not rated"
+    "summaryUnrated": "not rated",
+    "teamNameEn": "Team name (English)",
+    "teamNameEnHint": "Falls back to the Russian name",
+    "editTeamName": "Edit team name"
   },
   "results": {
     "title": "Enter results",

@@ -139,10 +139,32 @@ export async function addParticipant(
     player1_id: ids[0],
     player2_id: ids[1] ?? null,
     team_name: isDoubles(tournament.discipline) ? text(fd, "team_name") : null,
+    team_name_en: isDoubles(tournament.discipline) ? text(fd, "team_name_en") : null,
   });
   if (error) return { error: "generic" };
   revalidate(tournamentId);
   return { ok: (prev.ok ?? 0) + 1 };
+}
+
+/** Team names can be fixed at any status the user may still edit (RLS: can_edit_tournament). */
+export async function updateTeamNames(
+  tournamentId: string,
+  participantId: string,
+  _prev: ParticipantFormState,
+  fd: FormData,
+): Promise<ParticipantFormState> {
+  if (!(await getStaff())) return { error: "forbidden" };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("participants")
+    .update({ team_name: text(fd, "team_name"), team_name_en: text(fd, "team_name_en") })
+    .eq("id", participantId)
+    .eq("tournament_id", tournamentId)
+    .select("id");
+  if (error) return { error: "generic" };
+  if (!data?.length) return { error: "forbidden" };
+  revalidate(tournamentId);
+  return { ok: 1 };
 }
 
 export async function removeParticipant(tournamentId: string, participantId: string) {

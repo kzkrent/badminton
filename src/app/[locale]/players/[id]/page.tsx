@@ -159,7 +159,7 @@ export default async function PlayerPage({ params }: PageProps<"/[locale]/player
                       {[
                         tr.starts_on && format.dateTime(new Date(tr.starts_on), { dateStyle: "medium", timeZone: "UTC" }),
                         tt(`disc_${tr.discipline}`),
-                        partner && participantName(participant, locale) + (participant.team_name ? ` (${fullName(partner, locale)})` : ""),
+                        partner && participantName(participant, locale) + (participant.team_name || participant.team_name_en ? ` (${fullName(partner, locale)})` : ""),
                       ]
                         .filter(Boolean)
                         .join(" · ")}

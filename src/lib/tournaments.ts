@@ -30,11 +30,12 @@ export type Participant = {
   id: string;
   tournament_id: string;
   team_name: string | null;
+  team_name_en: string | null;
   player1: Player;
   player2: Player | null;
 };
 
-export const PARTICIPANT_COLUMNS = `id, tournament_id, team_name,
+export const PARTICIPANT_COLUMNS = `id, tournament_id, team_name, team_name_en,
   player1:players!participants_player1_id_fkey(*),
   player2:players!participants_player2_id_fkey(*)`;
 
@@ -78,7 +79,8 @@ export function tournamentName(t: Pick<Tournament, "name_ru" | "name_en">, local
 /** Display name: singles — player's name; doubles — team name or "Last1 / Last2". */
 export function participantName(p: Participant, locale: string): string {
   if (!p.player2) return fullName(p.player1, locale);
-  return p.team_name || `${lastName(p.player1, locale) || fullName(p.player1, locale)} / ${lastName(p.player2, locale) || fullName(p.player2, locale)}`;
+  const team = (locale === "en" && p.team_name_en) || p.team_name;
+  return team || `${lastName(p.player1, locale) || fullName(p.player1, locale)} / ${lastName(p.player2, locale) || fullName(p.player2, locale)}`;
 }
 
 /** Second line under a team name: "Name1 / Name2". */

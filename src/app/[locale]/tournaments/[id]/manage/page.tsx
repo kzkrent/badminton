@@ -15,11 +15,13 @@ import {
   reopenTournament,
   saveTournament,
   startTournament,
+  updateTeamNames,
 } from "@/app/actions/tournaments";
 import { TournamentHeader } from "@/components/TournamentHeader";
 import { TournamentForm } from "@/components/TournamentForm";
 import { ParticipantsManager } from "@/components/ParticipantsManager";
 import { ParticipantLabel } from "@/components/ParticipantLabel";
+import { TeamNameEditor } from "@/components/TeamNameEditor";
 import { StatusActions } from "@/components/StatusActions";
 import { MatchResultEditor } from "@/components/MatchResultEditor";
 import { clearResult, saveResult } from "@/app/actions/results";
@@ -76,12 +78,16 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
             participants={participants}
             addAction={addParticipant.bind(null, id)}
             removeAction={removeParticipant.bind(null, id)}
+            renameAction={updateTeamNames.bind(null, id)}
           />
         ) : (
           <ul className="card divide-y divide-border">
             {participants.map((p) => (
-              <li key={p.id} className="px-4 py-2">
-                <ParticipantLabel participant={p} locale={locale} />
+              <li key={p.id} className="flex flex-wrap items-center gap-3 px-4 py-2">
+                <span className="min-w-0 flex-1">
+                  <ParticipantLabel participant={p} locale={locale} />
+                </span>
+                {p.player2 && <TeamNameEditor participant={p} save={updateTeamNames.bind(null, id, p.id)} />}
               </li>
             ))}
           </ul>
