@@ -3,6 +3,7 @@ import { getFormatter } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { GALLERY_BUCKET, photoUrl } from "@/lib/supabase/env";
 import { tournamentName, type Tournament } from "@/lib/tournaments";
+import { formatTournamentDates } from "@/lib/date-format";
 import { StatusBadge, tournamentSummary } from "./TournamentHeader";
 
 /** Card with cover, name, status, date and format; drafts open the manage page. */
@@ -32,7 +33,7 @@ export async function TournamentCard({
           </div>
           {x.starts_on && !children && (
             <div className="text-xs text-muted">
-              {format.dateTime(new Date(x.starts_on), { dateStyle: "medium", timeZone: "UTC" })}
+              {formatTournamentDates(format, x)}
             </div>
           )}
           <div className="text-xs text-muted">{await tournamentSummary(x)}</div>

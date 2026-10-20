@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { tournamentName, type Tournament } from "@/lib/tournaments";
+import { formatTournamentDates } from "@/lib/date-format";
 
 const STATUS_STYLE = {
   draft: "border-border text-muted",
@@ -44,7 +45,7 @@ export async function TournamentHeader({ tournament: t, locale }: { tournament: 
         <StatusBadge status={t.status} />
       </div>
       <p className="text-sm text-muted">
-        {t.starts_on && `${format.dateTime(new Date(t.starts_on), { dateStyle: "long", timeZone: "UTC" })} · `}
+        {t.starts_on && `${formatTournamentDates(format, t, { dateStyle: "long" })} · `}
         {await tournamentSummary(t)}
       </p>
     </div>

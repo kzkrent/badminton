@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { daysUntil } from "@/lib/dates";
+import { formatTournamentDates } from "@/lib/date-format";
 import { tournamentAnnouncement, tournamentVenue, type Tournament } from "@/lib/tournaments";
 import { organizerName, type Organizer } from "@/lib/organizers";
 import { ContactButtons } from "./ContactButtons";
@@ -53,7 +54,9 @@ export async function AnnouncementDetails({
   const venue = tournamentVenue(t, locale);
   const text = tournamentAnnouncement(t, locale);
   const when = [
-    t.starts_on && format.dateTime(new Date(t.starts_on), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }),
+    t.ends_on && t.ends_on !== t.starts_on
+      ? formatTournamentDates(format, t, { day: "numeric", month: "long" })
+      : t.starts_on && format.dateTime(new Date(t.starts_on), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }),
     t.start_time?.slice(0, 5),
   ]
     .filter(Boolean)

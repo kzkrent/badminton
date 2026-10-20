@@ -201,7 +201,9 @@
     "registrationContactHint": "Link, phone, Telegram @handle or LINE ID",
     "organizer": "Organizer",
     "organizerHint": "Their name and contact buttons appear in the announcement. Profiles live under Organizers.",
-    "extraContact": "Additional registration contact"
+    "extraContact": "Additional registration contact",
+    "endsOn": "End date",
+    "endsBeforeStart": "End date is before the start date"
   },
   "results": {
     "title": "Enter results",

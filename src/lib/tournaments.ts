@@ -21,6 +21,7 @@ export type Tournament = {
   balance: boolean;
   balance_cap: number | null;
   starts_on: string | null;
+  ends_on: string | null;
   status: TournamentStatus;
   /** Elo K multiplier, 0..3 (SPEC 8) */
   rating_weight: number;
@@ -37,7 +38,7 @@ export type Tournament = {
 };
 
 export const TOURNAMENT_COLUMNS =
-  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact, organizer_id";
+  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, ends_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact, organizer_id";
 
 export type Participant = {
   id: string;

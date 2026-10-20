@@ -45,6 +45,8 @@ export function TournamentForm({
         ? tt("balanceCapError")
         : state.error === "weight"
           ? tt("weightError")
+          : state.error === "endsBeforeStart"
+            ? tt("endsBeforeStart")
           : state.error
             ? te(state.error)
             : null;
@@ -83,6 +85,12 @@ export function TournamentForm({
             {tt("startsOn")}
           </label>
           <input id="starts_on" name="starts_on" type="date" defaultValue={t?.starts_on ?? ""} className="input" />
+        </div>
+        <div>
+          <label htmlFor="ends_on" className="label">
+            {tt("endsOn")}
+          </label>
+          <input id="ends_on" name="ends_on" type="date" defaultValue={t?.ends_on ?? ""} className="input" />
         </div>
         {canSetWeight && (
           <div>

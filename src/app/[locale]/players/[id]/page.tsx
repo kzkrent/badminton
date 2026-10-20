@@ -12,6 +12,7 @@ import { loadPlayerHistory } from "@/lib/tournament-data";
 import { loadRatings } from "@/lib/rating-data";
 import { RATING_CATEGORIES } from "@/lib/rating";
 import { RatingChart } from "@/components/RatingChart";
+import { formatTournamentDates } from "@/lib/date-format";
 import { participantName, tournamentName } from "@/lib/tournaments";
 
 export default async function PlayerPage({ params }: PageProps<"/[locale]/players/[id]">) {
@@ -157,7 +158,7 @@ export default async function PlayerPage({ params }: PageProps<"/[locale]/player
                     </div>
                     <div className="truncate text-xs text-muted">
                       {[
-                        tr.starts_on && format.dateTime(new Date(tr.starts_on), { dateStyle: "medium", timeZone: "UTC" }),
+                        formatTournamentDates(format, tr),
                         tt(`disc_${tr.discipline}`),
                         partner && participantName(participant, locale) + (participant.team_name || participant.team_name_en ? ` (${fullName(partner, locale)})` : ""),
                       ]

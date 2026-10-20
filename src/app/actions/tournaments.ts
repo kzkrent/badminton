@@ -17,7 +17,9 @@ import {
   type Tournament,
 } from "@/lib/tournaments";
 
-export type TournamentFormState = { error?: "forbidden" | "generic" | "nameRequired" | "balanceCap" | "weight" };
+export type TournamentFormState = {
+  error?: "forbidden" | "generic" | "nameRequired" | "balanceCap" | "weight" | "endsBeforeStart";
+};
 export type ParticipantFormState = {
   error?: "forbidden" | "generic" | "notDraft" | "alreadyIn" | LineupError;
   ok?: number;
@@ -53,11 +55,15 @@ export async function saveTournament(
 
   const name_ru = text(fd, "name_ru");
   if (!name_ru) return { error: "nameRequired" };
+  const startsOn = text(fd, "starts_on");
+  const endsOn = text(fd, "ends_on");
+  if (startsOn && endsOn && endsOn < startsOn) return { error: "endsBeforeStart" };
   const startTime = text(fd, "start_time");
   const common: Record<string, unknown> = {
     name_ru,
     name_en: text(fd, "name_en"),
     starts_on: text(fd, "starts_on"),
+    ends_on: text(fd, "ends_on"),
     // Announcement details stay editable at any status.
     venue_ru: text(fd, "venue_ru"),
     venue_en: text(fd, "venue_en"),
