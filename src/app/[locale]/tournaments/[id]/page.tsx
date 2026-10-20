@@ -11,6 +11,8 @@ import { FilteredSchedule } from "@/components/FilteredSchedule";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { TournamentGallery, type TournamentPhoto } from "@/components/TournamentGallery";
 import { createClient } from "@/lib/supabase/server";
+import { GALLERY_BUCKET, photoUrl } from "@/lib/supabase/env";
+import Image from "next/image";
 
 export default async function TournamentPage({ params }: PageProps<"/[locale]/tournaments/[id]">) {
   const { locale, id } = await params;
@@ -35,8 +37,15 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
     tournament.game_target,
   );
 
+  const cover = photoUrl(tournament.cover_path, GALLERY_BUCKET);
+
   return (
     <section>
+      {cover && (
+        <div className="relative mb-6 aspect-[3/1] overflow-hidden rounded-xl bg-border">
+          <Image src={cover} alt="" fill priority unoptimized className="object-cover" />
+        </div>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <TournamentHeader tournament={tournament} locale={locale} />
         {staff && (

@@ -233,5 +233,16 @@
     "next": "Next photo",
     "photoOf": "Photo {n} of {total}",
     "original": "Original"
+  },
+  "cover": {
+    "title": "Tournament cover",
+    "none": "No cover yet",
+    "upload": "Upload cover",
+    "replace": "Replace",
+    "uploading": "Uploading…",
+    "remove": "Remove",
+    "removeConfirm": "Remove the cover?",
+    "hint": "Use a landscape image with the subject centred: edges get cropped (3:1 on the page, 16:7 in the list).",
+    "error": "Could not upload the cover. Try another file (JPG, PNG, WebP)."
   }
 }

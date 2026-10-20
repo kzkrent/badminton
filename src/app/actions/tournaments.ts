@@ -256,15 +256,31 @@ export async function reopenTournament(id: string): Promise<StatusActionState> {
   return {};
 }
 
+/** Sets (or clears, with null) the cover; the previous file is removed from storage. */
+export async function setCover(id: string, path: string | null): Promise<StatusActionState> {
+  if (!(await getStaff())) return { error: "forbidden" };
+  if (path !== null && !path.startsWith(`${id}/cover-`)) return { error: "forbidden" };
+  const supabase = await createClient();
+  const { data: before } = await supabase.from("tournaments").select("cover_path").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("tournaments").update({ cover_path: path }).eq("id", id).select("id");
+  if (error || !data?.length) return { error: "forbidden" };
+  if (before?.cover_path && before.cover_path !== path) {
+    await supabase.storage.from(GALLERY_BUCKET).remove([before.cover_path]);
+  }
+  revalidate(id);
+  return {};
+}
+
 export async function deleteTournament(id: string) {
   if (!(await getStaff())) return;
   const supabase = await createClient();
   // Photo rows cascade with the tournament; their files in storage don't.
   const { data: photos } = await supabase.from("tournament_photos").select("path, thumb_path").eq("tournament_id", id);
+  const { data: cover } = await supabase.from("tournaments").select("cover_path").eq("id", id).maybeSingle();
   const { data: deleted } = await supabase.from("tournaments").delete().eq("id", id).select("id");
-  if (deleted?.length && photos?.length) {
-    await supabase.storage.from(GALLERY_BUCKET).remove(photos.flatMap((p) => [p.path, p.thumb_path]));
-  }
+  const files = (photos ?? []).flatMap((p) => [p.path, p.thumb_path]);
+  if (cover?.cover_path) files.push(cover.cover_path);
+  if (deleted?.length && files.length) await supabase.storage.from(GALLERY_BUCKET).remove(files);
   revalidate();
   redirect({ href: "/", locale: await getLocale() });
 }

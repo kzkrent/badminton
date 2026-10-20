@@ -21,10 +21,12 @@ export type Tournament = {
   status: TournamentStatus;
   /** Elo K multiplier, 0..3 (SPEC 8) */
   rating_weight: number;
+  /** Path in the tournament-photos bucket */
+  cover_path: string | null;
 };
 
 export const TOURNAMENT_COLUMNS =
-  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status, rating_weight";
+  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status, rating_weight, cover_path";
 
 export type Participant = {
   id: string;

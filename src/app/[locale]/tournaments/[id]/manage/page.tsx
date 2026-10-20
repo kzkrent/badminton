@@ -16,7 +16,9 @@ import {
   saveTournament,
   startTournament,
   updateTeamNames,
+  setCover,
 } from "@/app/actions/tournaments";
+import { CoverEditor } from "@/components/CoverEditor";
 import { TournamentHeader } from "@/components/TournamentHeader";
 import { TournamentForm } from "@/components/TournamentForm";
 import { ParticipantsManager } from "@/components/ParticipantsManager";
@@ -57,6 +59,8 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
           {t("openPublic")}
         </Link>
       </div>
+
+      <CoverEditor tournamentId={id} coverPath={tournament.cover_path} setCover={setCover.bind(null, id)} />
 
       <details open={isDraft && participants.length === 0} className="group">
         <summary className="mb-3 cursor-pointer text-lg font-semibold">{t("settings")}</summary>
