@@ -60,7 +60,7 @@ export async function saveResult(matchId: string, prev: ResultState, fd: FormDat
 
   const { error } = await supabase.from("matches").update(update).eq("id", matchId);
   if (error) return { error: "generic" };
-  revalidatePath(`/[locale]/tournaments/${match.tournament_id}`, "layout");
+  revalidatePath("/[locale]", "layout"); // home shows recent results
   return { saved: (prev.saved ?? 0) + 1 };
 }
 
@@ -68,5 +68,5 @@ export async function clearResult(matchId: string) {
   const ctx = await loadForEdit(matchId);
   if (!ctx) return;
   await ctx.supabase.from("matches").update({ games: null, walkover_winner_id: null }).eq("id", matchId);
-  revalidatePath(`/[locale]/tournaments/${ctx.match.tournament_id}`, "layout");
+  revalidatePath("/[locale]", "layout"); // home shows recent results
 }

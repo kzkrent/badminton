@@ -48,7 +48,7 @@ export async function loadPlayerHistory(playerId: string) {
   if (tournamentIds.length === 0) return { history: [] as PlayerTournament[], total: emptyRecord() };
 
   const [{ data: ts }, { data: ms }, { data: ps }] = await Promise.all([
-    supabase.from("tournaments").select(TOURNAMENT_COLUMNS).in("id", tournamentIds).neq("status", "draft"),
+    supabase.from("tournaments").select(TOURNAMENT_COLUMNS).in("id", tournamentIds).in("status", ["active", "finished"]),
     supabase.from("matches").select(`tournament_id, ${MATCH_COLUMNS}`).in("tournament_id", tournamentIds),
     supabase.from("participants").select("id, tournament_id").in("tournament_id", tournamentIds),
   ]);

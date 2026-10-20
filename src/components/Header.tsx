@@ -15,7 +15,7 @@ export async function Header() {
           🏸 {t("appName")}
         </Link>
         <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          <Link href="/" className="hover:text-accent">
+          <Link href="/tournaments" className="hover:text-accent">
             {t("tournaments")}
           </Link>
           <Link href="/players" className="hover:text-accent">

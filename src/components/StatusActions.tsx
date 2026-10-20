@@ -11,6 +11,8 @@ type Props = {
   status: TournamentStatus;
   isOwner: boolean;
   start: Action;
+  announce: Action;
+  unannounce: Action;
   backToDraft: Action;
   finish: Action;
   reopen: Action;
@@ -56,12 +58,16 @@ function ActionButton({
   );
 }
 
-export function StatusActions({ status, isOwner, start, backToDraft, finish, reopen, remove }: Props) {
+export function StatusActions({ status, isOwner, start, announce, unannounce, backToDraft, finish, reopen, remove }: Props) {
   const t = useTranslations("tournaments");
 
   return (
     <div className="flex flex-wrap items-start gap-6">
-      {status === "draft" && <ActionButton action={start} label={t("start")} hint={t("startHint")} variant="btn-primary" />}
+      {(status === "draft" || status === "announced") && (
+        <ActionButton action={start} label={t("start")} hint={t("startHint")} variant="btn-primary" />
+      )}
+      {status === "draft" && <ActionButton action={announce} label={t("announce")} hint={t("announceHint")} />}
+      {status === "announced" && <ActionButton action={unannounce} label={t("unannounce")} hint={t("unannounceHint")} />}
       {status === "active" && (
         <>
           <ActionButton action={finish} label={t("finish")} confirmText={t("finishConfirm")} variant="btn-primary" />

@@ -2,7 +2,10 @@ import { fullName, lastName, type Gender, type Player } from "./players";
 
 export type Discipline = "M" | "F" | "MF" | "MM" | "FF";
 export type MatchFormat = "two_games" | "best_of_three";
-export type TournamentStatus = "draft" | "active" | "finished";
+export type TournamentStatus = "draft" | "announced" | "active" | "finished";
+
+/** Before the draw: participants and format can still change. */
+export const isPreStart = (s: TournamentStatus) => s === "draft" || s === "announced";
 
 export const DISCIPLINES: Discipline[] = ["M", "F", "MF", "MM", "FF"];
 
@@ -23,10 +26,17 @@ export type Tournament = {
   rating_weight: number;
   /** Path in the tournament-photos bucket */
   cover_path: string | null;
+  venue_ru: string | null;
+  venue_en: string | null;
+  /** "HH:MM:SS" */
+  start_time: string | null;
+  announcement_ru: string | null;
+  announcement_en: string | null;
+  registration_contact: string | null;
 };
 
 export const TOURNAMENT_COLUMNS =
-  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status, rating_weight, cover_path";
+  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact";
 
 export type Participant = {
   id: string;
@@ -73,6 +83,12 @@ export function validateLineup(discipline: Discipline, players: Pick<Player, "id
   const have = players.map((p) => p.gender).sort();
   return have.join() === [...need].sort().join() ? null : "gender";
 }
+
+export const tournamentVenue = (t: Pick<Tournament, "venue_ru" | "venue_en">, locale: string) =>
+  (locale === "en" && t.venue_en) || t.venue_ru;
+
+export const tournamentAnnouncement = (t: Pick<Tournament, "announcement_ru" | "announcement_en">, locale: string) =>
+  (locale === "en" ? t.announcement_en || t.announcement_ru : t.announcement_ru || t.announcement_en) ?? "";
 
 export function tournamentName(t: Pick<Tournament, "name_ru" | "name_en">, locale: string) {
   return (locale === "en" && t.name_en) || t.name_ru;

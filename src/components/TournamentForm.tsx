@@ -3,7 +3,7 @@
 import { startTransition, useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { TournamentFormState } from "@/app/actions/tournaments";
-import { DISCIPLINES, type Tournament } from "@/lib/tournaments";
+import { DISCIPLINES, isPreStart, type Tournament } from "@/lib/tournaments";
 import { Link } from "@/i18n/navigation";
 
 type Props = {
@@ -21,7 +21,7 @@ export function TournamentForm({ action, tournament: t, disciplineLocked, canSet
   const tc = useTranslations("common");
   const te = useTranslations("errors");
   const [state, formAction, pending] = useActionState(action, {});
-  const formatLocked = !!t && t.status !== "draft";
+  const formatLocked = !!t && !isPreStart(t.status);
   const [target, setTarget] = useState<15 | 21>(t?.game_target ?? 21);
   const [balance, setBalance] = useState(t?.balance ?? true);
 
@@ -33,8 +33,8 @@ export function TournamentForm({ action, tournament: t, disciplineLocked, canSet
         : state.error === "weight"
           ? tt("weightError")
           : state.error
-          ? te(state.error)
-          : null;
+            ? te(state.error)
+            : null;
 
   const radio = (name: string, value: string, label: string, checked: boolean, disabled = false, onChange?: () => void) => (
     <label key={value} className="flex items-center gap-2 text-sm">
@@ -90,6 +90,57 @@ export function TournamentForm({ action, tournament: t, disciplineLocked, canSet
           </div>
         )}
       </div>
+
+      <fieldset className="space-y-4 rounded-lg border border-border p-4">
+        <legend className="px-1 text-sm font-semibold">{tt("announcementSection")}</legend>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label htmlFor="start_time" className="label">
+              {tt("startTime")}
+            </label>
+            <input id="start_time" name="start_time" type="time" defaultValue={t?.start_time?.slice(0, 5) ?? ""} className="input" />
+          </div>
+          <div>
+            <label htmlFor="venue_ru" className="label">
+              {tt("venueRu")}
+            </label>
+            <input id="venue_ru" name="venue_ru" defaultValue={t?.venue_ru ?? ""} className="input" />
+          </div>
+          <div>
+            <label htmlFor="venue_en" className="label">
+              {tt("venueEn")}
+            </label>
+            <input id="venue_en" name="venue_en" defaultValue={t?.venue_en ?? ""} className="input" />
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="announcement_ru" className="label">
+              {tt("announcementRu")}
+            </label>
+            <textarea id="announcement_ru" name="announcement_ru" rows={4} defaultValue={t?.announcement_ru ?? ""} className="input" />
+          </div>
+          <div>
+            <label htmlFor="announcement_en" className="label">
+              {tt("announcementEn")}
+            </label>
+            <textarea id="announcement_en" name="announcement_en" rows={4} defaultValue={t?.announcement_en ?? ""} className="input" />
+          </div>
+        </div>
+        <p className="-mt-2 text-xs text-muted">{tt("announcementHint")}</p>
+        <div>
+          <label htmlFor="registration_contact" className="label">
+            {tt("registrationContact")}
+          </label>
+          <input
+            id="registration_contact"
+            name="registration_contact"
+            defaultValue={t?.registration_contact ?? ""}
+            placeholder={tt("registrationContactHint")}
+            className="input"
+          />
+        </div>
+      </fieldset>
 
       <fieldset disabled={formatLocked} className="space-y-6">
         {formatLocked && <p className="text-sm text-muted">{tt("formatLocked")}</p>}

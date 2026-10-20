@@ -9,6 +9,8 @@ import { ParticipantLabel } from "@/components/ParticipantLabel";
 import { StandingsTable } from "@/components/StandingsTable";
 import { FilteredSchedule } from "@/components/FilteredSchedule";
 import { LiveRefresh } from "@/components/LiveRefresh";
+import { AnnouncementDetails } from "@/components/AnnouncementDetails";
+import { isPreStart } from "@/lib/tournaments";
 import { TournamentGallery, type TournamentPhoto } from "@/components/TournamentGallery";
 import { createClient } from "@/lib/supabase/server";
 import { GALLERY_BUCKET, photoUrl } from "@/lib/supabase/env";
@@ -55,8 +57,11 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
         )}
       </div>
 
-      {tournament.status === "draft" ? (
+      {isPreStart(tournament.status) ? (
         <>
+          <div className="card mb-8 p-4">
+            <AnnouncementDetails tournament={tournament} locale={locale} />
+          </div>
           <h2 className="mb-3 text-lg font-semibold">{t("participantsCount", { count: participants.length })}</h2>
           {participants.length === 0 ? (
             <div className="card p-6 text-muted">{t("noParticipants")}</div>

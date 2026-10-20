@@ -5,7 +5,7 @@ import { getStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { loadTournament } from "@/lib/tournament-data";
 import { PLAYER_COLUMNS, type Player } from "@/lib/players";
-import { canEdit } from "@/lib/tournaments";
+import { canEdit, isPreStart } from "@/lib/tournaments";
 import {
   addParticipant,
   backToDraft,
@@ -17,6 +17,8 @@ import {
   startTournament,
   updateTeamNames,
   setCover,
+  announceTournament,
+  unannounceTournament,
 } from "@/app/actions/tournaments";
 import { CoverEditor } from "@/components/CoverEditor";
 import { TournamentHeader } from "@/components/TournamentHeader";
@@ -41,7 +43,7 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
 
   const t = await getTranslations("tournaments");
   const tr = await getTranslations("results");
-  const isDraft = tournament.status === "draft";
+  const isDraft = isPreStart(tournament.status);
   const byId = new Map(participants.map((p) => [p.id, p]));
 
   let players: Player[] = [];
@@ -103,6 +105,8 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
           status={tournament.status}
           isOwner={staff?.role === "owner"}
           start={startTournament.bind(null, id)}
+          announce={announceTournament.bind(null, id)}
+          unannounce={unannounceTournament.bind(null, id)}
           backToDraft={backToDraft.bind(null, id)}
           finish={finishTournament.bind(null, id)}
           reopen={reopenTournament.bind(null, id)}

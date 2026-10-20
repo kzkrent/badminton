@@ -10,6 +10,7 @@ import { GALLERY_BUCKET } from "@/lib/supabase/env";
 import {
   DISCIPLINES,
   isDoubles,
+  isPreStart,
   validateLineup,
   type Discipline,
   type LineupError,
@@ -29,7 +30,8 @@ const text = (fd: FormData, key: string) => {
 };
 
 function revalidate(id?: string) {
-  revalidatePath("/[locale]", "page");
+  // Home, the tournaments list and player pages all show tournament data.
+  revalidatePath("/[locale]", "layout");
   if (id) revalidatePath(`/[locale]/tournaments/${id}`, "layout");
 }
 
@@ -51,7 +53,19 @@ export async function saveTournament(
 
   const name_ru = text(fd, "name_ru");
   if (!name_ru) return { error: "nameRequired" };
-  const common: Record<string, unknown> = { name_ru, name_en: text(fd, "name_en"), starts_on: text(fd, "starts_on") };
+  const startTime = text(fd, "start_time");
+  const common: Record<string, unknown> = {
+    name_ru,
+    name_en: text(fd, "name_en"),
+    starts_on: text(fd, "starts_on"),
+    // Announcement details stay editable at any status.
+    venue_ru: text(fd, "venue_ru"),
+    venue_en: text(fd, "venue_en"),
+    start_time: startTime && /^d{2}:d{2}/.test(startTime) ? startTime : null,
+    announcement_ru: text(fd, "announcement_ru"),
+    announcement_en: text(fd, "announcement_en"),
+    registration_contact: text(fd, "registration_contact"),
+  };
 
   // Rating weight is the owner's call (SPEC 8); admins' forms don't send it.
   if (staff.role === "owner" && fd.has("rating_weight")) {
@@ -92,7 +106,7 @@ export async function saveTournament(
   if (!tournament) return { error: "forbidden" };
   // Format settings are locked once the schedule exists; names and date stay editable.
   let patch: Record<string, unknown> = common;
-  if (tournament.status === "draft") {
+  if (isPreStart(tournament.status)) {
     patch = { ...common, ...settings };
     // Changing the discipline would invalidate already added participants.
     const { count } = await supabase
@@ -118,7 +132,7 @@ export async function addParticipant(
   if (!(await getStaff())) return { error: "forbidden" };
   const { supabase, tournament } = await loadTournament(tournamentId);
   if (!tournament) return { error: "forbidden" };
-  if (tournament.status !== "draft") return { error: "notDraft" };
+  if (!isPreStart(tournament.status)) return { error: "notDraft" };
 
   const ids = [text(fd, "player1_id"), text(fd, "player2_id")].filter((v): v is string => !!v);
   const { data: players } = await supabase.from("players").select("id, gender").in("id", ids);
@@ -170,7 +184,7 @@ export async function updateTeamNames(
 export async function removeParticipant(tournamentId: string, participantId: string) {
   if (!(await getStaff())) return;
   const { supabase, tournament } = await loadTournament(tournamentId);
-  if (tournament?.status !== "draft") return;
+  if (!tournament || !isPreStart(tournament.status)) return;
   await supabase.from("participants").delete().eq("id", participantId).eq("tournament_id", tournamentId);
   revalidate(tournamentId);
 }
@@ -182,7 +196,7 @@ export async function startTournament(id: string): Promise<StatusActionState> {
   if (!(await getStaff())) return { error: "forbidden" };
   const supabase = await createClient();
   const { data: t } = await supabase.from("tournaments").select("status, rounds").eq("id", id).maybeSingle();
-  if (t?.status !== "draft") return { error: "forbidden" };
+  if (!t || !isPreStart(t.status)) return { error: "forbidden" };
 
   const { data: parts } = await supabase
     .from("participants")
@@ -214,6 +228,26 @@ export async function startTournament(id: string): Promise<StatusActionState> {
     await supabase.from("matches").delete().eq("tournament_id", id);
     return { error: "generic" };
   }
+  revalidate(id);
+  return {};
+}
+
+/** draft → announced: the tournament becomes public on the home page. */
+export async function announceTournament(id: string): Promise<StatusActionState> {
+  if (!(await getStaff())) return { error: "forbidden" };
+  const supabase = await createClient();
+  const { error } = await supabase.from("tournaments").update({ status: "announced" }).eq("id", id).eq("status", "draft");
+  if (error) return { error: "generic" };
+  revalidate(id);
+  return {};
+}
+
+/** announced → draft: hides the announcement again. */
+export async function unannounceTournament(id: string): Promise<StatusActionState> {
+  if (!(await getStaff())) return { error: "forbidden" };
+  const supabase = await createClient();
+  const { error } = await supabase.from("tournaments").update({ status: "draft" }).eq("id", id).eq("status", "announced");
+  if (error) return { error: "generic" };
   revalidate(id);
   return {};
 }

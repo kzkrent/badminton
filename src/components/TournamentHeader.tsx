@@ -3,6 +3,7 @@ import { tournamentName, type Tournament } from "@/lib/tournaments";
 
 const STATUS_STYLE = {
   draft: "border-border text-muted",
+  announced: "border-amber-500 text-amber-600 dark:text-amber-400",
   active: "border-accent text-accent",
   finished: "border-border text-foreground",
 };

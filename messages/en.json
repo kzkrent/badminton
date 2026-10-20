@@ -18,7 +18,17 @@
     "partners": "Our partners"
   },
   "home": {
-    "title": "Tournaments"
+    "title": "Samui Badminton League",
+    "empty": "No announcements or tournaments yet. Check back soon!",
+    "upcoming": "Coming up",
+    "live": "In progress",
+    "recent": "Recent results",
+    "top": "Top ratings",
+    "allRatings": "Full ratings",
+    "allTournaments": "All tournaments",
+    "leader": "Leader",
+    "points": "{points, plural, one {# pt} other {# pts}}",
+    "progress": "Matches played: {played} of {total}"
   },
   "login": {
     "title": "Organizer sign-in",
@@ -145,7 +155,7 @@
     "noMatches": "No matches",
     "newPlayer": "New player",
     "remove": "Remove",
-    "err_notDraft": "Participants can only change in a draft.",
+    "err_notDraft": "Participants can only change before the tournament starts.",
     "err_alreadyIn": "Player is already in this tournament.",
     "err_size": "Select all players.",
     "err_gender": "Lineup doesn't match the event.",
@@ -172,7 +182,22 @@
     "summaryUnrated": "not rated",
     "teamNameEn": "Team name (English)",
     "teamNameEnHint": "Falls back to the Russian name",
-    "editTeamName": "Edit team name"
+    "editTeamName": "Edit team name",
+    "status_announced": "Upcoming",
+    "sectionAnnounced": "Upcoming",
+    "announce": "Publish announcement",
+    "announceHint": "The tournament appears on the home page under Coming up. Participants and format can change until the start.",
+    "unannounce": "Withdraw announcement",
+    "unannounceHint": "Returns the tournament to draft — visible to organizers only.",
+    "announcementSection": "Announcement",
+    "venueRu": "Venue (Russian)",
+    "venueEn": "Venue (English)",
+    "startTime": "Start time",
+    "announcementRu": "Announcement text (Russian)",
+    "announcementEn": "Announcement text (English)",
+    "announcementHint": "About the event, prizes, entry fee — what players will see",
+    "registrationContact": "Registration contact",
+    "registrationContactHint": "Link, phone, Telegram @handle or LINE ID"
   },
   "results": {
     "title": "Enter results",
@@ -265,5 +290,9 @@
     "badUrl": "Invalid website address",
     "visit": "Visit website",
     "deleteConfirm": "Delete this partner?"
+  },
+  "announce": {
+    "countdown": "{days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
+    "register": "Register"
   }
 }
