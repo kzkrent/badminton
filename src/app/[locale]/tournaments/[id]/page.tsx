@@ -9,6 +9,8 @@ import { ParticipantLabel } from "@/components/ParticipantLabel";
 import { StandingsTable } from "@/components/StandingsTable";
 import { FilteredSchedule } from "@/components/FilteredSchedule";
 import { LiveRefresh } from "@/components/LiveRefresh";
+import { TournamentGallery, type TournamentPhoto } from "@/components/TournamentGallery";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function TournamentPage({ params }: PageProps<"/[locale]/tournaments/[id]">) {
   const { locale, id } = await params;
@@ -20,6 +22,13 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
   const t = await getTranslations("tournaments");
   const ts = await getTranslations("standings");
   const staff = await getStaff();
+  const supabase = await createClient();
+  const { data: photoRows } = await supabase
+    .from("tournament_photos")
+    .select("id, path, thumb_path, width, height, uploaded_by")
+    .eq("tournament_id", id)
+    .order("created_at");
+  const photos = (photoRows ?? []) as TournamentPhoto[];
   const standings = computeStandings(
     participants.map((p) => p.id),
     matches,
@@ -68,6 +77,12 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
           <FilteredSchedule matches={matches} participants={participants} target={tournament.game_target} />
         </>
       )}
+
+      <TournamentGallery
+        tournamentId={id}
+        photos={photos}
+        staff={staff ? { email: staff.email, isOwner: staff.role === "owner" } : null}
+      />
     </section>
   );
 }

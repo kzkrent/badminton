@@ -6,6 +6,7 @@ import { redirect } from "@/i18n/navigation";
 import { getStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { roundRobin } from "@/lib/schedule";
+import { GALLERY_BUCKET } from "@/lib/supabase/env";
 import {
   DISCIPLINES,
   isDoubles,
@@ -236,7 +237,12 @@ export async function reopenTournament(id: string): Promise<StatusActionState> {
 export async function deleteTournament(id: string) {
   if (!(await getStaff())) return;
   const supabase = await createClient();
-  await supabase.from("tournaments").delete().eq("id", id);
+  // Photo rows cascade with the tournament; their files in storage don't.
+  const { data: photos } = await supabase.from("tournament_photos").select("path, thumb_path").eq("tournament_id", id);
+  const { data: deleted } = await supabase.from("tournaments").delete().eq("id", id).select("id");
+  if (deleted?.length && photos?.length) {
+    await supabase.storage.from(GALLERY_BUCKET).remove(photos.flatMap((p) => [p.path, p.thumb_path]));
+  }
   revalidate();
   redirect({ href: "/", locale: await getLocale() });
 }

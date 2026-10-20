@@ -216,5 +216,19 @@
     "matches": "Matches",
     "change": "Last tournament",
     "empty": "No players with {min}+ matches in this category yet."
+  },
+  "gallery": {
+    "title": "How it was",
+    "upload": "Add photos",
+    "uploading": "Uploading {done} of {total}…",
+    "empty": "No photos yet.",
+    "errUpload": "Could not upload: {names}",
+    "deleteConfirm": "Delete this photo?",
+    "delete": "Delete",
+    "close": "Close",
+    "prev": "Previous photo",
+    "next": "Next photo",
+    "photoOf": "Photo {n} of {total}",
+    "original": "Original"
   }
 }
