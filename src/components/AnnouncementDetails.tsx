@@ -4,6 +4,7 @@ import { formatTournamentDates } from "@/lib/date-format";
 import { tournamentAnnouncement, tournamentVenue, type Tournament } from "@/lib/tournaments";
 import { organizerName, type Organizer } from "@/lib/organizers";
 import { ContactButtons } from "./ContactButtons";
+import { Linkified } from "./Linkified";
 
 /** Link for a free-text contact: URLs and phone numbers become clickable. */
 function ContactLink({ contact }: { contact: string }) {
@@ -22,24 +23,6 @@ function ContactLink({ contact }: { contact: string }) {
     );
   }
   return <span className="font-medium">{contact}</span>;
-}
-
-/** Plain text with http(s) links made clickable (e.g. a Google Maps link to the venue). */
-function Linkified({ text }: { text: string }) {
-  const parts = text.split(/(https?:\/\/[^\s]+)/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        /^https?:\/\//.test(part) ? (
-          <a key={i} href={part} target="_blank" rel="noopener" className="break-all text-accent hover:underline">
-            {part.replace(/^https?:\/\//, "")}
-          </a>
-        ) : (
-          part
-        ),
-      )}
-    </>
-  );
 }
 
 /** Countdown badge: "today", "tomorrow", "in N days"; nothing once the date has passed. */

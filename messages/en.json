@@ -306,7 +306,10 @@
     "nameRequired": "Enter a name",
     "badUrl": "Invalid website address",
     "visit": "Visit website",
-    "deleteConfirm": "Delete this partner?"
+    "deleteConfirm": "Delete this partner?",
+    "photos": "Photos",
+    "photosHint": "You can pick several: products, shop, team. The first photo is shown large when there is no logo.",
+    "removePhoto": "Remove photo"
   },
   "announce": {
     "countdown": "{days, plural, =0 {today} =1 {tomorrow} other {in # days}}",

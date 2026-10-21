@@ -6,10 +6,11 @@ export type Partner = {
   description_ru: string | null;
   description_en: string | null;
   logo_path: string | null;
+  photo_paths: string[];
   sort: number;
 };
 
-export const PARTNER_COLUMNS = "id, name, name_en, url, description_ru, description_en, logo_path, sort";
+export const PARTNER_COLUMNS = "id, name, name_en, url, description_ru, description_en, logo_path, photo_paths, sort";
 
 export const partnerName = (p: Partner, locale: string) => (locale === "en" && p.name_en) || p.name;
 

@@ -31,7 +31,18 @@ export async function savePartner(id: string | null, prev: PartnerFormState, fd:
   const logoPath = text(fd, "logo_path");
   if (logoPath && !logoPath.startsWith("partners/")) return { error: "forbidden" };
 
+  // Final photo list (kept + newly uploaded), composed by the form.
+  let photoPaths: string[] = [];
+  try {
+    const parsed = JSON.parse(String(fd.get("photo_paths") ?? "[]"));
+    if (Array.isArray(parsed)) photoPaths = parsed.filter((p): p is string => typeof p === "string");
+  } catch {
+    return { error: "generic" };
+  }
+  if (photoPaths.some((p) => !p.startsWith("partners/"))) return { error: "forbidden" };
+
   const row: Record<string, unknown> = {
+    photo_paths: photoPaths,
     name,
     name_en: text(fd, "name_en"),
     url,
@@ -42,9 +53,11 @@ export async function savePartner(id: string | null, prev: PartnerFormState, fd:
 
   const supabase = await createClient();
   let oldLogo: string | null = null;
+  let oldPhotos: string[] = [];
   if (id) {
-    const { data } = await supabase.from("partners").select("logo_path").eq("id", id).maybeSingle();
+    const { data } = await supabase.from("partners").select("logo_path, photo_paths").eq("id", id).maybeSingle();
     oldLogo = data?.logo_path ?? null;
+    oldPhotos = data?.photo_paths ?? [];
   }
   if (logoPath) row.logo_path = logoPath;
   else if (fd.get("remove_logo") === "on") row.logo_path = null;
@@ -54,9 +67,9 @@ export async function savePartner(id: string | null, prev: PartnerFormState, fd:
     : await supabase.from("partners").insert(row);
   if (error) return { error: "generic" };
 
-  if (oldLogo && "logo_path" in row && row.logo_path !== oldLogo) {
-    await supabase.storage.from(GALLERY_BUCKET).remove([oldLogo]);
-  }
+  const removed = oldPhotos.filter((p) => !photoPaths.includes(p));
+  if (oldLogo && "logo_path" in row && row.logo_path !== oldLogo) removed.push(oldLogo);
+  if (removed.length) await supabase.storage.from(GALLERY_BUCKET).remove(removed);
   revalidatePath("/[locale]", "layout");
   return { ok: (prev.ok ?? 0) + 1 };
 }
@@ -64,8 +77,8 @@ export async function savePartner(id: string | null, prev: PartnerFormState, fd:
 export async function deletePartner(id: string) {
   if (!isOwner(await getStaff())) return;
   const supabase = await createClient();
-  const { data } = await supabase.from("partners").delete().eq("id", id).select("logo_path");
-  const logo = data?.[0]?.logo_path;
-  if (logo) await supabase.storage.from(GALLERY_BUCKET).remove([logo]);
+  const { data } = await supabase.from("partners").delete().eq("id", id).select("logo_path, photo_paths");
+  const files = [data?.[0]?.logo_path, ...(data?.[0]?.photo_paths ?? [])].filter((p): p is string => !!p);
+  if (files.length) await supabase.storage.from(GALLERY_BUCKET).remove(files);
   revalidatePath("/[locale]", "layout");
 }
