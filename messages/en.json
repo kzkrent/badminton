@@ -234,7 +234,6 @@
     "round_sf": "Semifinal",
     "round_final": "Final",
     "round_third": "3rd-place match",
-    "format_best_of_five": "Best of five",
     "groupName": "Group {letter}",
     "groupSchedule": "Group schedule",
     "tabGroups": "Groups",
@@ -254,7 +253,8 @@
     "err_group_advanceTooMany": "More advance from a group than it has participants.",
     "groupFor": "Participant's group",
     "noGroup": "Group?",
-    "summaryGroups": "{groups} groups, top {advance} advance"
+    "summaryGroups": "{groups} groups, top {advance} advance",
+    "playoffFormat": "All playoff matches are best of three (no draws)."
   },
   "results": {
     "title": "Enter results",

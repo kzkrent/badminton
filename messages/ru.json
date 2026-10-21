@@ -234,7 +234,6 @@
     "round_sf": "1/2 финала",
     "round_final": "Финал",
     "round_third": "Матч за 3-е место",
-    "format_best_of_five": "До трёх побед",
     "groupName": "Группа {letter}",
     "groupSchedule": "Расписание группы",
     "tabGroups": "Группы",
@@ -254,7 +253,8 @@
     "err_group_advanceTooMany": "Из группы выходит больше участников, чем в ней есть.",
     "groupFor": "Группа участника",
     "noGroup": "Группа?",
-    "summaryGroups": "{groups} гр., выходят {advance}"
+    "summaryGroups": "{groups} гр., выходят {advance}",
+    "playoffFormat": "Все матчи плей-офф — до двух побед (ничьей быть не может)."
   },
   "results": {
     "title": "Ввод результатов",

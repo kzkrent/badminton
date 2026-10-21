@@ -107,7 +107,7 @@ export async function saveTournament(
     type: isGroups ? "groups_playoff" : "league",
     discipline: DISCIPLINES.includes(discipline) ? discipline : "M",
     rounds: fd.get("rounds") === "2" ? 2 : 1,
-    match_format: format === "two_games" || format === "best_of_five" ? format : "best_of_three",
+    match_format: format === "two_games" ? "two_games" : "best_of_three",
     game_target,
     balance,
     balance_cap: balance ? cap : null,
@@ -118,16 +118,16 @@ export async function saveTournament(
 
   // Per-round playoff rules (SPEC 5.6), sent only by the groups_playoff form.
   let playoff: Record<string, unknown> | null = null;
-  if (isGroups && fd.has("po_final_format")) {
+  if (isGroups && fd.has("po_final_target")) {
     const rules: PlayoffSettings = {};
     for (const key of ROUND_KEYS) {
-      if (!fd.has(`po_${key}_format`)) continue;
+      if (!fd.has(`po_${key}_target`)) continue;
       const target = fd.get(`po_${key}_target`) === "15" ? 15 : 21;
       const bal = fd.get(`po_${key}_balance`) === "on";
       const roundCap = Number(fd.get(`po_${key}_cap`));
       if (bal && !(Number.isInteger(roundCap) && roundCap > target + 1 && roundCap <= 99)) return { error: "balanceCap" };
       rules[key] = {
-        match_format: fd.get(`po_${key}_format`) === "best_of_five" ? "best_of_five" : "best_of_three",
+        match_format: "best_of_three",
         game_target: target,
         balance: bal,
         balance_cap: bal ? roundCap : null,

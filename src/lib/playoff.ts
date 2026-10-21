@@ -1,8 +1,8 @@
 import type { MatchFormat } from "./tournaments";
 
-/** Rules of one playoff round (a draw is impossible, so no "two games"). */
+/** Rules of one playoff round: always "best of three" (a draw is impossible). */
 export type RoundRules = {
-  match_format: Extract<MatchFormat, "best_of_three" | "best_of_five">;
+  match_format: Extract<MatchFormat, "best_of_three">;
   game_target: 15 | 21;
   balance: boolean;
   balance_cap: number | null;

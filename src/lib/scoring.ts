@@ -17,16 +17,13 @@ export function isValidGame([h, a]: Game, { target, balance, cap }: GameRules): 
 
 export type MatchError = { code: "game"; index: number } | { code: "count" };
 
-/** Games a side needs to win the match ("two games" has no winner requirement). */
-export const gamesToWin = (format: MatchFormat) => (format === "best_of_five" ? 3 : 2);
-
 /** Most games a match of this format can have. */
-export const maxGames = (format: MatchFormat) => (format === "best_of_five" ? 5 : format === "best_of_three" ? 3 : 2);
+export const maxGames = (format: MatchFormat) => (format === "best_of_three" ? 3 : 2);
 
 /**
  * Validates a whole match.
- * two_games — exactly 2 games (1:1 allowed); best_of_three / best_of_five — the match ends as soon as
- * one side has won 2 / 3 games, with no extra games after that.
+ * two_games — exactly 2 games (1:1 allowed); best_of_three — the match ends as soon as one side has
+ * won 2 games, with no extra game after that.
  */
 export function validateMatch(games: Game[], format: MatchFormat, rules: GameRules): MatchError | null {
   const bad = games.findIndex((g) => !isValidGame(g, rules));
@@ -34,7 +31,7 @@ export function validateMatch(games: Game[], format: MatchFormat, rules: GameRul
 
   if (format === "two_games") return games.length === 2 ? null : { code: "count" };
 
-  const need = gamesToWin(format);
+  const need = 2;
   let h = 0;
   let a = 0;
   for (const [gh, ga] of games) {
@@ -62,10 +59,7 @@ export type Outcome = {
   awayShuttles: number;
 };
 
-/**
- * League points (SPEC 6.2): a win without dropping a game 3:0, any other win 2:1, a 1:1 draw 1:1.
- * Same for "best of five": 3:0 → 3:0, 3:1 / 3:2 → 2:1.
- */
+/** League points (SPEC 6.2): a win without dropping a game 3:0, any other win 2:1, a 1:1 draw 1:1. */
 export function matchPoints(homeGames: number, awayGames: number): [number, number] {
   if (homeGames === awayGames) return [homeGames, awayGames];
   const homeWins = homeGames > awayGames;

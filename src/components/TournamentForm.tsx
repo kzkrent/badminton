@@ -266,7 +266,6 @@ export function TournamentForm({
               <span className="label">{tt("matchFormat")}</span>
               <div className="space-y-1">
                 {radio("match_format", "best_of_three", tt("format_best_of_three"), (t?.match_format ?? "best_of_three") === "best_of_three")}
-                {radio("match_format", "best_of_five", tt("format_best_of_five"), t?.match_format === "best_of_five")}
                 {radio("match_format", "two_games", tt("format_two_games"), t?.match_format === "two_games")}
               </div>
             </div>

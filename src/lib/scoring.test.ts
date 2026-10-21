@@ -53,20 +53,6 @@ describe("validateMatch", () => {
   });
 });
 
-describe("best of five", () => {
-  it("ends at three wins", () => {
-    expect(validateMatch([[21, 10], [21, 15], [21, 19]], "best_of_five", r21)).toBeNull();
-    expect(validateMatch([[21, 10], [10, 21], [21, 15], [15, 21], [21, 19]], "best_of_five", r21)).toBeNull();
-    expect(validateMatch([[21, 10], [21, 15]], "best_of_five", r21)).toEqual({ code: "count" });
-    expect(validateMatch([[21, 10], [21, 15], [21, 19], [21, 5]], "best_of_five", r21)).toEqual({ code: "count" });
-  });
-  it("points: 3:0 → 3/0, 3:1 and 3:2 → 2/1", () => {
-    expect(matchPoints(3, 0)).toEqual([3, 0]);
-    expect(matchPoints(1, 3)).toEqual([1, 2]);
-    expect(matchPoints(3, 2)).toEqual([2, 1]);
-  });
-});
-
 describe("matchPoints", () => {
   it("3:0 for a clean win, 2:1 for a three-game win, 1:1 for a draw", () => {
     expect(matchPoints(2, 0)).toEqual([3, 0]);

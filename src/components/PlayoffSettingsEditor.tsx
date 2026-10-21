@@ -23,12 +23,12 @@ export function PlayoffSettingsEditor({ settings, qualifiers, thirdPlace, onThir
         {tt("thirdPlace")}
       </label>
       <p className="text-xs text-muted">{tt("playoffHint", { count: qualifiers })}</p>
+      <p className="text-xs text-muted">{tt("playoffFormat")}</p>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[520px] text-sm">
+        <table className="w-full min-w-[380px] text-sm">
           <thead>
             <tr className="text-left text-xs text-muted">
               <th className="py-1 pr-2 font-medium">{tt("round")}</th>
-              <th className="py-1 pr-2 font-medium">{tt("matchFormat")}</th>
               <th className="py-1 pr-2 font-medium">{tt("gameTarget")}</th>
               <th className="py-1 pr-2 font-medium">{tt("balance")}</th>
               <th className="py-1 font-medium">{tt("balanceCap")}</th>
@@ -40,12 +40,6 @@ export function PlayoffSettingsEditor({ settings, qualifiers, thirdPlace, onThir
               return (
                 <tr key={key} className="border-t border-border">
                   <td className="py-2 pr-2 font-medium whitespace-nowrap">{tt(`round_${key}`)}</td>
-                  <td className="py-2 pr-2">
-                    <select name={`po_${key}_format`} defaultValue={r.match_format} className="input py-1">
-                      <option value="best_of_three">{tt("format_best_of_three")}</option>
-                      <option value="best_of_five">{tt("format_best_of_five")}</option>
-                    </select>
-                  </td>
                   <td className="py-2 pr-2">
                     <select name={`po_${key}_target`} defaultValue={String(r.game_target)} className="input w-20 py-1">
                       <option value="15">15</option>

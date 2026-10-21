@@ -2,7 +2,7 @@ import { fullName, lastName, type Gender, type Player } from "./players";
 import type { PlayoffSettings } from "./playoff";
 
 export type Discipline = "M" | "F" | "MF" | "MM" | "FF";
-export type MatchFormat = "two_games" | "best_of_three" | "best_of_five";
+export type MatchFormat = "two_games" | "best_of_three";
 export type TournamentStatus = "draft" | "announced" | "active" | "finished";
 
 /** Before the draw: participants and format can still change. */
