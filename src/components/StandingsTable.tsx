@@ -15,13 +15,15 @@ type Props = {
   unresolvedTies: string[][];
   participants: Participant[];
   matches: Match[];
+  /** Groups stage: the first N rows advance and are tinted. */
+  qualify?: number;
 };
 
 const COLS = ["played", "for", "against", "diff", "points", "place"] as const;
 /** Shuttles for/against stay on wider screens; the difference column carries them on phones. */
 const HIDE_ON_MOBILE = new Set<string>(["for", "against"]);
 
-export function StandingsTable({ rows, unresolvedTies, participants, matches }: Props) {
+export function StandingsTable({ rows, unresolvedTies, participants, matches, qualify = 0 }: Props) {
   const t = useTranslations("standings");
   const locale = useLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -64,7 +66,9 @@ export function StandingsTable({ rows, unresolvedTies, participants, matches }: 
                 <Fragment key={r.id}>
                   <tr
                     onClick={() => setExpanded(open ? null : r.id)}
-                    className={`cursor-pointer border-b border-border hover:bg-background ${open ? "bg-background" : ""}`}
+                    className={`cursor-pointer border-b border-border hover:bg-background ${open ? "bg-background" : ""} ${
+                      r.order < qualify && r.place ? "bg-accent/5 shadow-[inset_3px_0_0_var(--accent)]" : ""
+                    }`}
                     aria-expanded={open}
                   >
                     <td className="px-3 py-2 sm:px-4">
@@ -137,8 +141,8 @@ function ParticipantMatches({
   return (
     <ul className="space-y-1 text-sm">
       {own.map((m) => {
-        const home = byId.get(m.home_id);
-        const away = byId.get(m.away_id);
+        const home = byId.get(m.home_id ?? "");
+        const away = byId.get(m.away_id ?? "");
         if (!home || !away) return null;
         return (
           <li key={m.id} className="grid grid-cols-[4.5rem_1fr_auto_1fr] items-center gap-2">

@@ -5,7 +5,9 @@ import { getStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { loadTournament } from "@/lib/tournament-data";
 import { PLAYER_COLUMNS, type Player } from "@/lib/players";
-import { canEdit, isPreStart } from "@/lib/tournaments";
+import { canEdit, isPreStart, participantName, type Match, type MatchFormat } from "@/lib/tournaments";
+import { groupLetter } from "@/lib/groups";
+import { roundKey, rulesFor } from "@/lib/playoff";
 import { ORGANIZER_COLUMNS, type Organizer } from "@/lib/organizers";
 import {
   addParticipant,
@@ -18,6 +20,8 @@ import {
   startTournament,
   updateTeamNames,
   setCover,
+  setParticipantGroup,
+  buildPlayoffStage,
   announceTournament,
   unannounceTournament,
 } from "@/app/actions/tournaments";
@@ -49,6 +53,42 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
   const { data: orgRows } = await (await createClient()).from("organizers").select(ORGANIZER_COLUMNS).order("name");
   const organizers = (orgRows ?? []) as Organizer[];
 
+  // Result editors: league — by tour; groups — by group and tour; playoff — by round with its own format.
+  const isGroups = tournament.type === "groups_playoff";
+  const groupMatches = matches.filter((m) => m.stage !== "playoff");
+  const playoffMatches = matches.filter((m) => m.stage === "playoff");
+  const playoffRounds = playoffMatches.length ? Math.max(...playoffMatches.map((m) => m.tour)) : 0;
+  type Block = { key: string; title: string; matches: Match[]; format: (m: Match) => MatchFormat };
+  const groupFormat = () => tournament.match_format;
+  const blocks: Block[] = [];
+  const groupNos = isGroups ? [...new Set(groupMatches.map((m) => m.group_no ?? 0))].sort((a, b) => a - b) : [0];
+  for (const g of groupNos) {
+    const inGroup = groupMatches.filter((m) => !isGroups || m.group_no === g);
+    for (const tour of [...new Set(inGroup.map((m) => m.tour))].sort((a, b) => a - b)) {
+      blocks.push({
+        key: `g${g}-${tour}`,
+        title: isGroups
+          ? `${t("groupName", { letter: groupLetter(g) })} · ${t("tour", { n: tour })}`
+          : t("tour", { n: tour }),
+        matches: inGroup.filter((m) => m.tour === tour),
+        format: groupFormat,
+      });
+    }
+  }
+  for (let r = 1; r <= playoffRounds; r++) {
+    for (const slot of r === playoffRounds ? [0, 1] : [null]) {
+      const ms = playoffMatches.filter((m) => m.tour === r && (slot === null || m.slot === slot));
+      if (!ms.length) continue;
+      const key = roundKey(r, playoffRounds, slot ?? 0);
+      blocks.push({
+        key: `p${r}-${slot ?? "all"}`,
+        title: `${t("tabPlayoff")} · ${t(`round_${key}`)}`,
+        matches: ms,
+        format: () => rulesFor(tournament.playoff_settings, key).match_format,
+      });
+    }
+  }
+
   let players: Player[] = [];
   if (isDraft) {
     const supabase = await createClient();
@@ -75,6 +115,7 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
           disciplineLocked={participants.length > 0}
           canSetWeight={staff?.role === "owner"}
           organizers={organizers}
+          playoffBuilt={playoffMatches.length > 0}
           cancelHref={`/tournaments/${id}/manage`}
         />
       </details>
@@ -89,6 +130,8 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
             addAction={addParticipant.bind(null, id)}
             removeAction={removeParticipant.bind(null, id)}
             renameAction={updateTeamNames.bind(null, id)}
+            manualGroups={isGroups && tournament.group_seeding === "manual" ? (tournament.groups_count ?? 2) : 0}
+            setGroup={setParticipantGroup.bind(null, id)}
           />
         ) : (
           <ul className="card divide-y divide-border">
@@ -114,38 +157,42 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
           backToDraft={backToDraft.bind(null, id)}
           finish={finishTournament.bind(null, id)}
           reopen={reopenTournament.bind(null, id)}
+          buildPlayoff={isGroups ? buildPlayoffStage.bind(null, id) : undefined}
+          playoffBuilt={playoffMatches.length > 0}
           remove={deleteTournament.bind(null, id)}
         />
       </div>
 
-      {matches.length > 0 && (
+      {blocks.length > 0 && (
         <div>
           <h2 className="mb-3 text-lg font-semibold">{tr("title")}</h2>
           <div className="space-y-4">
-            {[...new Set(matches.map((m) => m.tour))].map((tour) => (
-              <div key={tour} className="card overflow-hidden">
-                <h3 className="border-b border-border bg-background px-4 py-2 text-sm font-semibold">
-                  {t("tour", { n: tour })}
-                </h3>
+            {blocks.map((b) => (
+              <div key={b.key} className="card overflow-hidden">
+                <h3 className="border-b border-border bg-background px-4 py-2 text-sm font-semibold">{b.title}</h3>
                 <div className="divide-y divide-border">
-                  {matches
-                    .filter((m) => m.tour === tour)
-                    .map((m) => {
-                      const home = byId.get(m.home_id);
-                      const away = byId.get(m.away_id);
-                      if (!home || !away) return null;
+                  {b.matches.map((m) => {
+                    const home = byId.get(m.home_id ?? "");
+                    const away = byId.get(m.away_id ?? "");
+                    if (!home || !away) {
                       return (
-                        <MatchResultEditor
-                          key={m.id}
-                          match={m}
-                          home={home}
-                          away={away}
-                          format={tournament.match_format}
-                          save={saveResult.bind(null, m.id)}
-                          clear={clearResult.bind(null, m.id)}
-                        />
+                        <p key={m.id} className="px-4 py-3 text-sm text-muted">
+                          {[home, away].map((p) => (p ? participantName(p, locale) : "—")).join(" — ")} · {tr("waiting")}
+                        </p>
                       );
-                    })}
+                    }
+                    return (
+                      <MatchResultEditor
+                        key={m.id}
+                        match={m}
+                        home={home}
+                        away={away}
+                        format={b.format(m)}
+                        save={saveResult.bind(null, m.id)}
+                        clear={clearResult.bind(null, m.id)}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             ))}

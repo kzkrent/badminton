@@ -15,6 +15,7 @@ type ParticipantRow = { id: string; player1_id: string; player2_id: string | nul
 type MatchRow = {
   id: string;
   tournament_id: string;
+  stage: "group" | "playoff";
   tour: number;
   position: number;
   home_id: string;
@@ -30,7 +31,7 @@ export const loadRatings = cache(async () => {
     supabase.from("participants").select("id, player1_id, player2_id"),
     supabase
       .from("matches")
-      .select("id, tournament_id, tour, position, home_id, away_id, games")
+      .select("id, tournament_id, stage, tour, position, home_id, away_id, games")
       .not("games", "is", null)
       .is("walkover_winner_id", null),
     supabase.from("players").select("id, rating"),
@@ -52,6 +53,8 @@ export const loadRatings = cache(async () => {
       return (
         when(ta).localeCompare(when(tb)) ||
         ta.created_at.localeCompare(tb.created_at) ||
+        // group stage before playoff ("group" < "playoff")
+        a.stage.localeCompare(b.stage) ||
         a.tour - b.tour ||
         a.position - b.position
       );

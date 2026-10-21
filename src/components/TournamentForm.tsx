@@ -3,6 +3,7 @@
 import { startTransition, useActionState, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { organizerName, type Organizer } from "@/lib/organizers";
+import { PlayoffSettingsEditor } from "./PlayoffSettingsEditor";
 import type { TournamentFormState } from "@/app/actions/tournaments";
 import { DISCIPLINES, isPreStart, type Tournament } from "@/lib/tournaments";
 import { Link } from "@/i18n/navigation";
@@ -17,6 +18,8 @@ type Props = {
   organizers: Organizer[];
   /** Pre-selected organizer for a new tournament (the signed-in user's profile). */
   defaultOrganizerId?: string | null;
+  /** Playoff rules lock once the bracket exists. */
+  playoffBuilt?: boolean;
   cancelHref: string;
 };
 
@@ -27,6 +30,7 @@ export function TournamentForm({
   canSetWeight,
   organizers,
   defaultOrganizerId,
+  playoffBuilt,
   cancelHref,
 }: Props) {
   const locale = useLocale();
@@ -37,6 +41,11 @@ export function TournamentForm({
   const formatLocked = !!t && !isPreStart(t.status);
   const [target, setTarget] = useState<15 | 21>(t?.game_target ?? 21);
   const [balance, setBalance] = useState(t?.balance ?? true);
+  const [type, setType] = useState<"league" | "groups_playoff">(t?.type ?? "league");
+  const [groups, setGroups] = useState(t?.groups_count ?? 2);
+  const [advance, setAdvance] = useState(t?.advance_per_group ?? 2);
+  const [thirdPlace, setThirdPlace] = useState(t?.third_place ?? true);
+  const playoffLocked = !!playoffBuilt || (!!t && t.status === "finished");
 
   const error =
     state.error === "nameRequired"
@@ -184,18 +193,16 @@ export function TournamentForm({
 
       <fieldset disabled={formatLocked} className="space-y-6">
         {formatLocked && <p className="text-sm text-muted">{tt("formatLocked")}</p>}
+        {/* Disabled inputs aren't submitted; the server still needs the type to accept playoff rules. */}
+        {formatLocked && <input type="hidden" name="type" value={type} />}
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <span className="label">{tt("type")}</span>
-            {radio("type", "league", tt("type_league"), true)}
-          </div>
-          <div>
-            <span className="label">{tt("rounds")}</span>
-            <div className="space-y-1">
-              {radio("rounds", "1", tt("rounds_1"), (t?.rounds ?? 1) === 1)}
-              {radio("rounds", "2", tt("rounds_2"), t?.rounds === 2)}
-            </div>
+        <div>
+          <span className="label">{tt("type")}</span>
+          <div className="space-y-1">
+            {radio("type", "league", tt("type_league"), type === "league", false, () => setType("league"))}
+            {radio("type", "groups_playoff", tt("type_groups_playoff"), type === "groups_playoff", false, () =>
+              setType("groups_playoff"),
+            )}
           </div>
         </div>
 
@@ -212,48 +219,106 @@ export function TournamentForm({
           )}
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <span className="label">{tt("matchFormat")}</span>
-            <div className="space-y-1">
-              {radio("match_format", "best_of_three", tt("format_best_of_three"), (t?.match_format ?? "best_of_three") === "best_of_three")}
-              {radio("match_format", "two_games", tt("format_two_games"), t?.match_format === "two_games")}
-            </div>
+        {type === "groups_playoff" && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="block text-sm">
+              <span className="label">{tt("groupsCount")}</span>
+              <select name="groups_count" value={groups} onChange={(e) => setGroups(Number(e.target.value))} className="input">
+                {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm">
+              <span className="label">{tt("advancePerGroup")}</span>
+              <select name="advance_per_group" value={advance} onChange={(e) => setAdvance(Number(e.target.value))} className="input">
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm">
+              <span className="label">{tt("groupSeeding")}</span>
+              <select name="group_seeding" defaultValue={t?.group_seeding ?? "rating"} className="input">
+                <option value="rating">{tt("seeding_rating")}</option>
+                <option value="random">{tt("seeding_random")}</option>
+                <option value="manual">{tt("seeding_manual")}</option>
+              </select>
+            </label>
           </div>
-          <div>
-            <span className="label">{tt("gameTarget")}</span>
-            <div className="flex gap-4">
-              {radio("game_target", "15", "15", target === 15, false, () => setTarget(15))}
-              {radio("game_target", "21", "21", target === 21, false, () => setTarget(21))}
-            </div>
-          </div>
-        </div>
+        )}
 
-        <div className="flex flex-wrap items-end gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="balance" checked={balance} onChange={(e) => setBalance(e.target.checked)} />
-            {tt("balance")}
-          </label>
-          {balance && (
-            <div className="w-32">
-              <label htmlFor="balance_cap" className="label">
-                {tt("balanceCap")}
-              </label>
-              <input
-                id="balance_cap"
-                name="balance_cap"
-                type="number"
-                min={target + 2}
-                max={99}
-                key={target}
-                defaultValue={t?.balance_cap && t.game_target === target ? t.balance_cap : target === 21 ? 30 : 21}
-                className="input"
-              />
+        <div className="space-y-6 rounded-lg border border-border p-4">
+          {type === "groups_playoff" && <h3 className="text-sm font-semibold">{tt("groupStage")}</h3>}
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div>
+              <span className="label">{tt("rounds")}</span>
+              <div className="space-y-1">
+                {radio("rounds", "1", tt("rounds_1"), (t?.rounds ?? 1) === 1)}
+                {radio("rounds", "2", tt("rounds_2"), t?.rounds === 2)}
+              </div>
             </div>
-          )}
-          {balance && <p className="w-full text-xs text-muted">{tt("balanceCapHint")}</p>}
+            <div>
+              <span className="label">{tt("matchFormat")}</span>
+              <div className="space-y-1">
+                {radio("match_format", "best_of_three", tt("format_best_of_three"), (t?.match_format ?? "best_of_three") === "best_of_three")}
+                {radio("match_format", "best_of_five", tt("format_best_of_five"), t?.match_format === "best_of_five")}
+                {radio("match_format", "two_games", tt("format_two_games"), t?.match_format === "two_games")}
+              </div>
+            </div>
+            <div>
+              <span className="label">{tt("gameTarget")}</span>
+              <div className="flex gap-4">
+                {radio("game_target", "15", "15", target === 15, false, () => setTarget(15))}
+                {radio("game_target", "21", "21", target === 21, false, () => setTarget(21))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-end gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="balance" checked={balance} onChange={(e) => setBalance(e.target.checked)} />
+              {tt("balance")}
+            </label>
+            {balance && (
+              <div className="w-32">
+                <label htmlFor="balance_cap" className="label">
+                  {tt("balanceCap")}
+                </label>
+                <input
+                  id="balance_cap"
+                  name="balance_cap"
+                  type="number"
+                  min={target + 2}
+                  max={99}
+                  key={target}
+                  defaultValue={t?.balance_cap && t.game_target === target ? t.balance_cap : target === 21 ? 30 : 21}
+                  className="input"
+                />
+              </div>
+            )}
+            {balance && <p className="w-full text-xs text-muted">{tt("balanceCapHint")}</p>}
+          </div>
         </div>
       </fieldset>
+
+      {type === "groups_playoff" && (
+        <div className="space-y-3 rounded-lg border border-border p-4">
+          <h3 className="text-sm font-semibold">{tt("playoffStage")}</h3>
+          {playoffLocked && <p className="text-sm text-muted">{tt("playoffLocked")}</p>}
+          <PlayoffSettingsEditor
+            settings={t?.playoff_settings ?? null}
+            qualifiers={groups * advance}
+            thirdPlace={thirdPlace}
+            onThirdPlace={setThirdPlace}
+            disabled={playoffLocked}
+          />
+        </div>
+      )}
 
       {error && <p className="text-sm text-danger">{error}</p>}
 

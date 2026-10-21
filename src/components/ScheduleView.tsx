@@ -47,8 +47,8 @@ export function ScheduleView({ matches, participants, tours }: Props) {
             </h3>
             <ul className="divide-y divide-border">
               {inTour.map((m) => {
-                const home = byId.get(m.home_id);
-                const away = byId.get(m.away_id);
+                const home = byId.get(m.home_id ?? "");
+                const away = byId.get(m.away_id ?? "");
                 if (!home || !away) return null;
                 return (
                   <li key={m.id} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2 text-sm sm:gap-3 sm:px-4">

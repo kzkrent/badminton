@@ -10,6 +10,7 @@ import { ParticipantLabel } from "./ParticipantLabel";
 import { PlayerForm } from "./PlayerForm";
 import { PlayerPicker } from "./PlayerPicker";
 import { TeamNameEditor } from "./TeamNameEditor";
+import { groupLetter } from "@/lib/groups";
 
 type Props = {
   discipline: Discipline;
@@ -18,12 +19,24 @@ type Props = {
   addAction: (prev: ParticipantFormState, fd: FormData) => Promise<ParticipantFormState>;
   removeAction: (participantId: string) => Promise<void>;
   renameAction: (participantId: string, prev: ParticipantFormState, fd: FormData) => Promise<ParticipantFormState>;
+  /** Manual group distribution: number of groups (0 = off) */
+  manualGroups?: number;
+  setGroup?: (participantId: string, group: number | null) => Promise<void>;
 };
 
 /** Gender required in each slot; mixed pairs are entered as man + woman. */
 const SLOTS: Record<Discipline, Gender[]> = { M: ["M"], F: ["F"], MF: ["M", "F"], MM: ["M", "M"], FF: ["F", "F"] };
 
-export function ParticipantsManager({ discipline, players, participants, addAction, removeAction, renameAction }: Props) {
+export function ParticipantsManager({
+  discipline,
+  players,
+  participants,
+  addAction,
+  removeAction,
+  renameAction,
+  manualGroups = 0,
+  setGroup,
+}: Props) {
   const t = useTranslations("tournaments");
   const te = useTranslations("errors");
   const locale = useLocale();
@@ -139,6 +152,21 @@ export function ParticipantsManager({ discipline, players, participants, addActi
               <span className="min-w-0 flex-1">
                 <ParticipantLabel participant={p} locale={locale} />
               </span>
+              {manualGroups > 0 && setGroup && (
+                <select
+                  value={p.group_no ?? ""}
+                  onChange={(e) => setGroup(p.id, e.target.value ? Number(e.target.value) : null)}
+                  className={`input w-auto py-1 ${p.group_no ? "" : "border-danger"}`}
+                  aria-label={t("groupFor")}
+                >
+                  <option value="">{t("noGroup")}</option>
+                  {Array.from({ length: manualGroups }, (_, i) => i + 1).map((g) => (
+                    <option key={g} value={g}>
+                      {t("groupName", { letter: groupLetter(g) })}
+                    </option>
+                  ))}
+                </select>
+              )}
               {doubles && <TeamNameEditor participant={p} save={renameAction.bind(null, p.id)} />}
               <button
                 type="button"

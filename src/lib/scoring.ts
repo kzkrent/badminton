@@ -17,9 +17,16 @@ export function isValidGame([h, a]: Game, { target, balance, cap }: GameRules): 
 
 export type MatchError = { code: "game"; index: number } | { code: "count" };
 
+/** Games a side needs to win the match ("two games" has no winner requirement). */
+export const gamesToWin = (format: MatchFormat) => (format === "best_of_five" ? 3 : 2);
+
+/** Most games a match of this format can have. */
+export const maxGames = (format: MatchFormat) => (format === "best_of_five" ? 5 : format === "best_of_three" ? 3 : 2);
+
 /**
  * Validates a whole match.
- * two_games — exactly 2 games (1:1 allowed); best_of_three — 2 games if 2:0, otherwise 3 with the third deciding.
+ * two_games — exactly 2 games (1:1 allowed); best_of_three / best_of_five — the match ends as soon as
+ * one side has won 2 / 3 games, with no extra games after that.
  */
 export function validateMatch(games: Game[], format: MatchFormat, rules: GameRules): MatchError | null {
   const bad = games.findIndex((g) => !isValidGame(g, rules));
@@ -27,15 +34,20 @@ export function validateMatch(games: Game[], format: MatchFormat, rules: GameRul
 
   if (format === "two_games") return games.length === 2 ? null : { code: "count" };
 
-  const winners = games.map(([h, a]) => (h > a ? "h" : "a"));
-  if (games.length === 2) return winners[0] === winners[1] ? null : { code: "count" };
-  if (games.length === 3) return winners[0] !== winners[1] ? null : { code: "count" };
-  return { code: "count" };
+  const need = gamesToWin(format);
+  let h = 0;
+  let a = 0;
+  for (const [gh, ga] of games) {
+    if (h === need || a === need) return { code: "count" }; // game after the match was decided
+    if (gh > ga) h++;
+    else a++;
+  }
+  return h === need || a === need ? null : { code: "count" };
 }
 
 export type MatchLike = {
-  home_id: string;
-  away_id: string;
+  home_id: string | null;
+  away_id: string | null;
   games: Game[] | null;
   walkover_winner_id: string | null;
 };
@@ -50,11 +62,16 @@ export type Outcome = {
   awayShuttles: number;
 };
 
-/** League points by games won: 2:0 → 3:0, 2:1 → 2:1, 1:1 → 1:1 (SPEC 6.2). */
+/**
+ * League points (SPEC 6.2): a win without dropping a game 3:0, any other win 2:1, a 1:1 draw 1:1.
+ * Same for "best of five": 3:0 → 3:0, 3:1 / 3:2 → 2:1.
+ */
 export function matchPoints(homeGames: number, awayGames: number): [number, number] {
-  if (homeGames > awayGames && awayGames === 0) return [3, 0];
-  if (awayGames > homeGames && homeGames === 0) return [0, 3];
-  return [homeGames, awayGames];
+  if (homeGames === awayGames) return [homeGames, awayGames];
+  const homeWins = homeGames > awayGames;
+  const loserGames = homeWins ? awayGames : homeGames;
+  const [w, l] = loserGames === 0 ? [3, 0] : [2, 1];
+  return homeWins ? [w, l] : [l, w];
 }
 
 /** Result of a match for the table, or null if not played. Walkover = 2:0 in games, no shuttles counted (SPEC 5.4). */
@@ -86,4 +103,12 @@ export function outcome(m: MatchLike): Outcome | null {
 export function displayGames(m: MatchLike): Game[] | null {
   if (m.walkover_winner_id) return [m.walkover_winner_id === m.home_id ? [2, 0] : [0, 2]];
   return m.games?.length ? m.games : null;
+}
+
+/** Winner of a decided match (games or walkover), or null. */
+export function matchWinner(m: MatchLike): string | null {
+  if (m.walkover_winner_id) return m.walkover_winner_id;
+  const o = outcome(m);
+  if (!o || o.homeGames === o.awayGames) return null;
+  return o.homeGames > o.awayGames ? m.home_id : m.away_id;
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { ResultState } from "@/app/actions/results";
 import { participantName, type Match, type MatchFormat, type Participant } from "@/lib/tournaments";
 import { ParticipantLabel } from "./ParticipantLabel";
+import { maxGames } from "@/lib/scoring";
 
 type Props = {
   match: Match;
@@ -12,15 +13,18 @@ type Props = {
   away: Participant;
   format: MatchFormat;
   save: (prev: ResultState, fd: FormData) => Promise<ResultState>;
-  clear: () => Promise<void>;
+  clear: () => Promise<ResultState>;
+  /** Optional caption, e.g. the playoff round */
+  caption?: string;
 };
 
-export function MatchResultEditor({ match, home, away, format, save, clear }: Props) {
+export function MatchResultEditor({ match, home, away, format, save, clear, caption }: Props) {
   const t = useTranslations("results");
   const te = useTranslations("errors");
   const locale = useLocale();
   const [state, action, pending] = useActionState(save, {});
-  const gameCount = format === "best_of_three" ? 3 : 2;
+  const [clearError, setClearError] = useState<ResultState["error"]>();
+  const gameCount = maxGames(format);
   const hasResult = !!match.games || !!match.walkover_winner_id;
   const walkover = match.walkover_winner_id
     ? match.walkover_winner_id === match.home_id
@@ -28,13 +32,14 @@ export function MatchResultEditor({ match, home, away, format, save, clear }: Pr
       : "away"
     : "";
 
+  const shown = clearError ?? state.error;
   const error =
-    state.error === "game"
+    shown === "game"
       ? t("err_game", { n: (state.gameIndex ?? 0) + 1 })
-      : state.error === "count" || state.error === "empty"
-        ? t(`err_${state.error}`)
-        : state.error
-          ? te(state.error)
+      : shown === "count" || shown === "empty" || shown === "nextPlayed" || shown === "notReady"
+        ? t(`err_${shown}`)
+        : shown
+          ? te(shown)
           : null;
 
   const scoreInput = (name: string, value: number | undefined, label: string) => (
@@ -61,6 +66,7 @@ export function MatchResultEditor({ match, home, away, format, save, clear }: Pr
       }}
       className={`space-y-2 px-4 py-3 ${hasResult ? "" : "bg-background/50"}`}
     >
+      {caption && <p className="text-xs font-medium text-muted">{caption}</p>}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
         <ParticipantLabel participant={home} locale={locale} size={24} />
         <span className="text-xs text-muted">—</span>
@@ -91,7 +97,12 @@ export function MatchResultEditor({ match, home, away, format, save, clear }: Pr
             {t("save")}
           </button>
           {hasResult && (
-            <button type="button" onClick={() => startTransition(() => clear())} className="btn-secondary px-3 py-1">
+            <button type="button" onClick={() =>
+                startTransition(async () => {
+                  const res = await clear();
+                  setClearError(res.error);
+                })
+              } className="btn-secondary px-3 py-1">
               {t("clear")}
             </button>
           )}

@@ -73,7 +73,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   // Participants for recent results that aren't loaded yet.
   const known = new Map(focusParticipants.map((p) => [p.id, p]));
-  const missing = [...new Set(recent.flatMap((m) => [m.home_id, m.away_id]))].filter((id) => !known.has(id));
+  const missing = [...new Set(recent.flatMap((m) => [m.home_id, m.away_id]))].filter((id): id is string => !!id && !known.has(id));
   if (missing.length) {
     const { data } = await supabase.from("participants").select(PARTICIPANT_COLUMNS).in("id", missing);
     for (const p of (data ?? []) as unknown as Participant[]) known.set(p.id, p);
@@ -148,7 +148,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               const ms = liveMatches.filter((m) => m.tournament_id === x.id);
               const played = ms.filter((m) => m.games || m.walkover_winner_id).length;
               const leaderRow = computeStandings(parts.map((p) => p.id), ms).rows[0];
-              const leader = leaderRow?.place ? parts.find((p) => p.id === leaderRow.id) : undefined;
+              const leader = x.type === "league" && leaderRow?.place ? parts.find((p) => p.id === leaderRow.id) : undefined;
               return (
                 <li key={x.id}>
                   <TournamentCard tournament={x} locale={locale}>
@@ -174,8 +174,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <h2 className="mb-3 text-lg font-semibold">{t("recent")}</h2>
           <ul className="card divide-y divide-border">
             {recent.map((m) => {
-              const home = known.get(m.home_id);
-              const away = known.get(m.away_id);
+              const home = known.get(m.home_id ?? "");
+              const away = known.get(m.away_id ?? "");
               const tour = byTournament.get(m.tournament_id);
               if (!home || !away || !tour) return null;
               return (

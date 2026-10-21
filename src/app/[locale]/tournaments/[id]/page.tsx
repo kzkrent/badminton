@@ -9,6 +9,7 @@ import { ParticipantLabel } from "@/components/ParticipantLabel";
 import { StandingsTable } from "@/components/StandingsTable";
 import { FilteredSchedule } from "@/components/FilteredSchedule";
 import { LiveRefresh } from "@/components/LiveRefresh";
+import { GroupsPlayoffView } from "@/components/GroupsPlayoffView";
 import { AnnouncementDetails } from "@/components/AnnouncementDetails";
 import { isPreStart } from "@/lib/tournaments";
 import { ORGANIZER_COLUMNS } from "@/lib/organizers";
@@ -81,16 +82,22 @@ export default async function TournamentPage({ params }: PageProps<"/[locale]/to
       ) : (
         <>
           {tournament.status === "active" && <LiveRefresh tournamentId={id} />}
-          <h2 className="mb-3 text-lg font-semibold">{ts("title")}</h2>
-          <StandingsTable
-            rows={standings.rows}
-            unresolvedTies={standings.unresolvedTies}
-            participants={participants}
-            matches={matches}
-          />
+          {tournament.type === "groups_playoff" ? (
+            <GroupsPlayoffView tournament={tournament} participants={participants} matches={matches} locale={locale} />
+          ) : (
+            <>
+              <h2 className="mb-3 text-lg font-semibold">{ts("title")}</h2>
+              <StandingsTable
+                rows={standings.rows}
+                unresolvedTies={standings.unresolvedTies}
+                participants={participants}
+                matches={matches}
+              />
 
-          <h2 className="mt-8 mb-3 text-lg font-semibold">{t("schedule")}</h2>
-          <FilteredSchedule matches={matches} participants={participants} />
+              <h2 className="mt-8 mb-3 text-lg font-semibold">{t("schedule")}</h2>
+              <FilteredSchedule matches={matches} participants={participants} />
+            </>
+          )}
         </>
       )}
 

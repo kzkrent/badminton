@@ -17,6 +17,9 @@ type Props = {
   finish: Action;
   reopen: Action;
   remove: () => Promise<void>;
+  /** groups_playoff: build (or rebuild) the bracket from the group standings */
+  buildPlayoff?: Action;
+  playoffBuilt?: boolean;
 };
 
 function ActionButton({
@@ -37,9 +40,14 @@ function ActionButton({
   const [state, run, pending] = useActionState(action, {});
   const error = !state.error
     ? null
-    : state.error === "tooFew" || state.error === "hasResults"
-      ? t(`err_${state.error}`)
-      : te(state.error);
+    : state.error === "groupsSetup"
+      ? t(`err_group_${state.groupError ?? "unassigned"}`)
+      : state.error === "tooFew" ||
+          state.error === "hasResults" ||
+          state.error === "groupsNotFinished" ||
+          state.error === "playoffHasResults"
+        ? t(`err_${state.error}`)
+        : te(state.error);
 
   return (
     <form
@@ -58,7 +66,19 @@ function ActionButton({
   );
 }
 
-export function StatusActions({ status, isOwner, start, announce, unannounce, backToDraft, finish, reopen, remove }: Props) {
+export function StatusActions({
+  status,
+  isOwner,
+  start,
+  announce,
+  unannounce,
+  backToDraft,
+  finish,
+  reopen,
+  remove,
+  buildPlayoff,
+  playoffBuilt,
+}: Props) {
   const t = useTranslations("tournaments");
 
   return (
@@ -68,6 +88,15 @@ export function StatusActions({ status, isOwner, start, announce, unannounce, ba
       )}
       {status === "draft" && <ActionButton action={announce} label={t("announce")} hint={t("announceHint")} />}
       {status === "announced" && <ActionButton action={unannounce} label={t("unannounce")} hint={t("unannounceHint")} />}
+      {status === "active" && buildPlayoff && (
+        <ActionButton
+          action={buildPlayoff}
+          label={t(playoffBuilt ? "rebuildPlayoff" : "buildPlayoff")}
+          hint={t(playoffBuilt ? "rebuildPlayoffHint" : "buildPlayoffHint")}
+          confirmText={playoffBuilt ? t("rebuildPlayoffConfirm") : undefined}
+          variant={playoffBuilt ? "btn-secondary" : "btn-primary"}
+        />
+      )}
       {status === "active" && (
         <>
           <ActionButton action={finish} label={t("finish")} confirmText={t("finishConfirm")} variant="btn-primary" />

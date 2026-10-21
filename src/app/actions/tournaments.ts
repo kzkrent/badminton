@@ -6,6 +6,12 @@ import { redirect } from "@/i18n/navigation";
 import { getStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { roundRobin } from "@/lib/schedule";
+import { buildPlayoff, ROUND_KEYS, seedQualifiers, type GroupRow, type PlayoffSettings } from "@/lib/playoff";
+import { shuffle, snakeGroups, validateGroups, type GroupSetupError } from "@/lib/groups";
+import { computeStandings } from "@/lib/standings";
+import { categoryOf, START_RATING } from "@/lib/rating";
+import { loadRatings } from "@/lib/rating-data";
+import type { MatchLike } from "@/lib/scoring";
 import { GALLERY_BUCKET } from "@/lib/supabase/env";
 import {
   DISCIPLINES,
@@ -24,7 +30,10 @@ export type ParticipantFormState = {
   error?: "forbidden" | "generic" | "notDraft" | "alreadyIn" | LineupError;
   ok?: number;
 };
-export type StatusActionState = { error?: "forbidden" | "generic" | "tooFew" | "hasResults" };
+export type StatusActionState = {
+  error?: "forbidden" | "generic" | "tooFew" | "hasResults" | "groupsSetup" | "groupsNotFinished" | "playoffHasResults";
+  groupError?: GroupSetupError;
+};
 
 const text = (fd: FormData, key: string) => {
   const v = String(fd.get(key) ?? "").trim();
@@ -87,20 +96,51 @@ export async function saveTournament(
   const cap = Number(text(fd, "balance_cap") ?? (game_target === 21 ? 30 : 21));
   if (balance && !(Number.isInteger(cap) && cap > game_target + 1 && cap <= 99)) return { error: "balanceCap" };
 
-  const settings = {
+  const format = String(fd.get("match_format"));
+  const isGroups = fd.get("type") === "groups_playoff";
+  const clamp = (v: unknown, lo: number, hi: number, dflt: number) => {
+    const n = Number(v);
+    return Number.isInteger(n) && n >= lo && n <= hi ? n : dflt;
+  };
+  const seeding = String(fd.get("group_seeding"));
+  const settings: Record<string, unknown> = {
+    type: isGroups ? "groups_playoff" : "league",
     discipline: DISCIPLINES.includes(discipline) ? discipline : "M",
     rounds: fd.get("rounds") === "2" ? 2 : 1,
-    match_format: fd.get("match_format") === "two_games" ? "two_games" : "best_of_three",
+    match_format: format === "two_games" || format === "best_of_five" ? format : "best_of_three",
     game_target,
     balance,
     balance_cap: balance ? cap : null,
+    groups_count: isGroups ? clamp(fd.get("groups_count"), 2, 8, 2) : null,
+    advance_per_group: isGroups ? clamp(fd.get("advance_per_group"), 1, 4, 2) : null,
+    group_seeding: isGroups ? (["rating", "random", "manual"].includes(seeding) ? seeding : "rating") : null,
   };
+
+  // Per-round playoff rules (SPEC 5.6), sent only by the groups_playoff form.
+  let playoff: Record<string, unknown> | null = null;
+  if (isGroups && fd.has("po_final_format")) {
+    const rules: PlayoffSettings = {};
+    for (const key of ROUND_KEYS) {
+      if (!fd.has(`po_${key}_format`)) continue;
+      const target = fd.get(`po_${key}_target`) === "15" ? 15 : 21;
+      const bal = fd.get(`po_${key}_balance`) === "on";
+      const roundCap = Number(fd.get(`po_${key}_cap`));
+      if (bal && !(Number.isInteger(roundCap) && roundCap > target + 1 && roundCap <= 99)) return { error: "balanceCap" };
+      rules[key] = {
+        match_format: fd.get(`po_${key}_format`) === "best_of_five" ? "best_of_five" : "best_of_three",
+        game_target: target,
+        balance: bal,
+        balance_cap: bal ? roundCap : null,
+      };
+    }
+    playoff = { playoff_settings: rules, third_place: fd.get("third_place") === "on" };
+  }
 
   const supabase = await createClient();
   if (!id) {
     const { data, error } = await supabase
       .from("tournaments")
-      .insert({ ...common, ...settings })
+      .insert({ ...common, ...settings, ...(playoff ?? {}) })
       .select("id")
       .single();
     if (error) return { error: "generic" };
@@ -121,6 +161,15 @@ export async function saveTournament(
       .select("id", { count: "exact", head: true })
       .eq("tournament_id", id);
     if (count) patch.discipline = tournament.discipline;
+  }
+  // Playoff rules stay editable until the bracket is built.
+  if (playoff && tournament.status !== "finished") {
+    const { count: built } = await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .eq("tournament_id", id)
+      .eq("stage", "playoff");
+    if (!built) patch = { ...patch, ...playoff };
   }
   const { error } = await supabase.from("tournaments").update(patch).eq("id", id);
   if (error) return { error: "generic" };
@@ -198,35 +247,105 @@ export async function removeParticipant(tournamentId: string, participantId: str
 
 // ───────────── Status ─────────────
 
-/** draft → active: generates the round-robin schedule. */
+/** Average rating of a participant's players in the tournament's rating category (SPEC 5.6). */
+async function participantStrength(
+  parts: { id: string; player1_id: string; player2_id: string | null }[],
+  discipline: Discipline,
+) {
+  const supabase = await createClient();
+  const ratings = await loadRatings();
+  const cat = categoryOf(discipline);
+  const playerIds = parts.flatMap((p) => [p.player1_id, p.player2_id]).filter((x): x is string => !!x);
+  const { data: players } = await supabase.from("players").select("id, rating").in("id", playerIds);
+  const seed = new Map(((players ?? []) as { id: string; rating: number | null }[]).map((p) => [p.id, p.rating]));
+  const of = (pid: string) => {
+    const elo = ratings[cat].get(pid)?.rating;
+    if (elo !== undefined) return elo;
+    const start = seed.get(pid);
+    return start != null ? Number(start) : START_RATING;
+  };
+  return new Map(
+    parts.map((p) => {
+      const ids = [p.player1_id, p.player2_id].filter((x): x is string => !!x);
+      return [p.id, ids.reduce((sum, pid) => sum + of(pid), 0) / ids.length] as const;
+    }),
+  );
+}
+
+/** draft/announced → active: league — one round robin; groups — distribute, then a round robin per group. */
 export async function startTournament(id: string): Promise<StatusActionState> {
   if (!(await getStaff())) return { error: "forbidden" };
   const supabase = await createClient();
-  const { data: t } = await supabase.from("tournaments").select("status, rounds").eq("id", id).maybeSingle();
+  const { data: t } = await supabase
+    .from("tournaments")
+    .select("status, rounds, type, discipline, groups_count, advance_per_group, group_seeding")
+    .eq("id", id)
+    .maybeSingle();
   if (!t || !isPreStart(t.status)) return { error: "forbidden" };
 
   const { data: parts } = await supabase
     .from("participants")
-    .select("id")
+    .select("id, player1_id, player2_id, group_no")
     .eq("tournament_id", id)
     .order("created_at");
-  const ids = (parts ?? []).map((p) => p.id as string);
-  if (ids.length < 2) return { error: "tooFew" };
+  const participants = (parts ?? []) as {
+    id: string;
+    player1_id: string;
+    player2_id: string | null;
+    group_no: number | null;
+  }[];
+  if (participants.length < 2) return { error: "tooFew" };
 
-  // Random draw so the order of adding participants doesn't decide the schedule.
-  for (let i = ids.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [ids[i], ids[j]] = [ids[j], ids[i]];
+  type Row = {
+    tournament_id: string;
+    tour: number;
+    position: number;
+    home_id: string;
+    away_id: string;
+    stage: "group";
+    group_no: number | null;
+  };
+  const rows: Row[] = [];
+
+  if (t.type === "groups_playoff") {
+    const groups = t.groups_count as number;
+    let assignment: Map<string, number | null>;
+    if (t.group_seeding === "manual") {
+      assignment = new Map(participants.map((p) => [p.id, p.group_no]));
+    } else {
+      let ordered: string[];
+      if (t.group_seeding === "random") {
+        ordered = shuffle(participants.map((p) => p.id));
+      } else {
+        const strength = await participantStrength(participants, t.discipline as Discipline);
+        ordered = participants.map((p) => p.id).sort((a, b) => strength.get(b)! - strength.get(a)!);
+      }
+      assignment = snakeGroups(ordered, groups);
+    }
+    const setupError = validateGroups(assignment, groups, t.advance_per_group as number);
+    if (setupError) return { error: "groupsSetup", groupError: setupError };
+
+    if (t.group_seeding !== "manual") {
+      for (const [pid, g] of assignment) {
+        const { error } = await supabase.from("participants").update({ group_no: g }).eq("id", pid);
+        if (error) return { error: "generic" };
+      }
+    }
+    for (let g = 1; g <= groups; g++) {
+      const ids = shuffle([...assignment].filter(([, n]) => n === g).map(([pid]) => pid));
+      for (const f of roundRobin(ids, t.rounds as 1 | 2)) {
+        rows.push({ tournament_id: id, tour: f.tour, position: f.position, home_id: f.home, away_id: f.away, stage: "group", group_no: g });
+      }
+    }
+  } else {
+    // Random draw so the order of adding participants doesn't decide the schedule.
+    const ids = shuffle(participants.map((p) => p.id));
+    for (const f of roundRobin(ids, t.rounds as 1 | 2)) {
+      rows.push({ tournament_id: id, tour: f.tour, position: f.position, home_id: f.home, away_id: f.away, stage: "group", group_no: null });
+    }
   }
 
   await supabase.from("matches").delete().eq("tournament_id", id);
-  const rows = roundRobin(ids, t.rounds as 1 | 2).map((f) => ({
-    tournament_id: id,
-    tour: f.tour,
-    position: f.position,
-    home_id: f.home,
-    away_id: f.away,
-  }));
   const { error } = await supabase.from("matches").insert(rows);
   if (error) return { error: "generic" };
 
@@ -235,6 +354,77 @@ export async function startTournament(id: string): Promise<StatusActionState> {
     await supabase.from("matches").delete().eq("tournament_id", id);
     return { error: "generic" };
   }
+  revalidate(id);
+  return {};
+}
+
+/** Manual distribution: put a participant into a group (before the start). */
+export async function setParticipantGroup(tournamentId: string, participantId: string, group: number | null) {
+  if (!(await getStaff())) return;
+  const { supabase, tournament } = await loadTournament(tournamentId);
+  if (!tournament || !isPreStart(tournament.status)) return;
+  await supabase
+    .from("participants")
+    .update({ group_no: group && group >= 1 && group <= 8 ? group : null })
+    .eq("id", participantId)
+    .eq("tournament_id", tournamentId);
+  revalidate(tournamentId);
+}
+
+/**
+ * Builds (or rebuilds) the playoff from the group standings (SPEC 5.6).
+ * Needs every group match decided and no playoff results yet.
+ */
+export async function buildPlayoffStage(id: string): Promise<StatusActionState> {
+  if (!(await getStaff())) return { error: "forbidden" };
+  const supabase = await createClient();
+  const { data: t } = await supabase
+    .from("tournaments")
+    .select("status, type, advance_per_group, third_place")
+    .eq("id", id)
+    .maybeSingle();
+  if (!t || t.status !== "active" || t.type !== "groups_playoff") return { error: "forbidden" };
+
+  const [{ data: ms }, { data: ps }] = await Promise.all([
+    supabase.from("matches").select("id, stage, group_no, home_id, away_id, games, walkover_winner_id").eq("tournament_id", id),
+    supabase.from("participants").select("id, group_no").eq("tournament_id", id),
+  ]);
+  const matches = (ms ?? []) as (MatchLike & { id: string; stage: string; group_no: number | null })[];
+  const groupMatches = matches.filter((m) => m.stage === "group");
+  if (groupMatches.some((m) => !m.games?.length && !m.walkover_winner_id)) return { error: "groupsNotFinished" };
+  if (matches.some((m) => m.stage === "playoff" && (m.games?.length || m.walkover_winner_id))) {
+    return { error: "playoffHasResults" };
+  }
+
+  const participants = (ps ?? []) as { id: string; group_no: number | null }[];
+  const groups = [...new Set(participants.map((p) => p.group_no).filter((g): g is number => !!g))].sort((a, b) => a - b);
+  const rows: GroupRow[] = groups.flatMap((g) => {
+    const ids = participants.filter((p) => p.group_no === g).map((p) => p.id);
+    return computeStandings(ids, groupMatches.filter((m) => m.group_no === g)).rows.map((r) => ({
+      id: r.id,
+      group: g,
+      place: r.order + 1,
+      points: r.points,
+      diff: r.diff,
+      against: r.shuttlesAgainst,
+    }));
+  });
+
+  const seeded = seedQualifiers(rows, t.advance_per_group as number);
+  if (seeded.length < 2) return { error: "tooFew" };
+  const playoff = buildPlayoff(seeded, t.third_place as boolean).map((m) => ({
+    tournament_id: id,
+    stage: "playoff",
+    tour: m.round,
+    slot: m.slot,
+    position: m.slot,
+    home_id: m.home,
+    away_id: m.away,
+  }));
+
+  await supabase.from("matches").delete().eq("tournament_id", id).eq("stage", "playoff");
+  const { error } = await supabase.from("matches").insert(playoff);
+  if (error) return { error: "generic" };
   revalidate(id);
   return {};
 }

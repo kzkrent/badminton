@@ -1,7 +1,8 @@
 import { fullName, lastName, type Gender, type Player } from "./players";
+import type { PlayoffSettings } from "./playoff";
 
 export type Discipline = "M" | "F" | "MF" | "MM" | "FF";
-export type MatchFormat = "two_games" | "best_of_three";
+export type MatchFormat = "two_games" | "best_of_three" | "best_of_five";
 export type TournamentStatus = "draft" | "announced" | "active" | "finished";
 
 /** Before the draw: participants and format can still change. */
@@ -13,7 +14,7 @@ export type Tournament = {
   id: string;
   name_ru: string;
   name_en: string | null;
-  type: "league";
+  type: "league" | "groups_playoff";
   rounds: 1 | 2;
   discipline: Discipline;
   match_format: MatchFormat;
@@ -35,21 +36,29 @@ export type Tournament = {
   announcement_en: string | null;
   registration_contact: string | null;
   organizer_id: string | null;
+  /** groups_playoff only */
+  groups_count: number | null;
+  advance_per_group: number | null;
+  group_seeding: "rating" | "random" | "manual" | null;
+  third_place: boolean;
+  playoff_settings: PlayoffSettings | null;
 };
 
 export const TOURNAMENT_COLUMNS =
-  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, ends_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact, organizer_id";
+  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, ends_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact, organizer_id, groups_count, advance_per_group, group_seeding, third_place, playoff_settings";
 
 export type Participant = {
   id: string;
   tournament_id: string;
   team_name: string | null;
   team_name_en: string | null;
+  /** groups_playoff: 1-based group */
+  group_no: number | null;
   player1: Player;
   player2: Player | null;
 };
 
-export const PARTICIPANT_COLUMNS = `id, tournament_id, team_name, team_name_en,
+export const PARTICIPANT_COLUMNS = `id, tournament_id, team_name, team_name_en, group_no,
   player1:players!participants_player1_id_fkey(*),
   player2:players!participants_player2_id_fkey(*)`;
 
@@ -57,13 +66,18 @@ export type Match = {
   id: string;
   tour: number;
   position: number;
-  home_id: string;
-  away_id: string;
+  /** null in playoff matches whose participants aren't known yet */
+  home_id: string | null;
+  away_id: string | null;
+  stage: "group" | "playoff";
+  group_no: number | null;
+  /** playoff: position in the round (tour = round); slot 1 of the last round is the 3rd-place match */
+  slot: number | null;
   games: [number, number][] | null;
   walkover_winner_id: string | null;
 };
 
-export const MATCH_COLUMNS = "id, tour, position, home_id, away_id, games, walkover_winner_id";
+export const MATCH_COLUMNS = "id, tour, position, home_id, away_id, games, walkover_winner_id, stage, group_no, slot";
 
 export const isDoubles = (d: Discipline) => d.length === 2;
 

@@ -26,6 +26,7 @@ function totals(ids: string[], matches: MatchLike[]): Map<string, Totals> {
     ids.map((id) => [id, { id, played: 0, shuttlesFor: 0, shuttlesAgainst: 0, diff: 0, points: 0 }]),
   );
   for (const m of matches) {
+    if (!m.home_id || !m.away_id) continue;
     const o = outcome(m);
     const home = t.get(m.home_id);
     const away = t.get(m.away_id);
@@ -71,7 +72,7 @@ export function computeStandings(ids: string[], matches: MatchLike[]): Standings
     const set = new Set(group);
     const mini = totals(
       group,
-      matches.filter((m) => set.has(m.home_id) && set.has(m.away_id)),
+      matches.filter((m) => !!m.home_id && !!m.away_id && set.has(m.home_id) && set.has(m.away_id)),
     );
     const byMini = groupBy(
       [...group].sort((a, b) => mini.get(b)!.points - mini.get(a)!.points),

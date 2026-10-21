@@ -23,6 +23,8 @@ export async function tournamentSummary(t: Tournament) {
   const tt = await getTranslations("tournaments");
   return [
     tt(`disc_${t.discipline}`),
+    t.type === "groups_playoff" ? tt("type_groups_playoff") : null,
+    t.type === "groups_playoff" ? tt("summaryGroups", { groups: t.groups_count ?? 2, advance: t.advance_per_group ?? 1 }) : null,
     tt(`rounds_${t.rounds}`),
     tt("summaryGame", { format: tt(`format_${t.match_format}`), target: t.game_target }),
     t.balance ? tt("summaryBalance", { cap: t.balance_cap ?? 0 }) : tt("summaryNoBalance"),
