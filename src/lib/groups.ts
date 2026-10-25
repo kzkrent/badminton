@@ -26,7 +26,10 @@ export function shuffle<T>(items: T[], random = Math.random): T[] {
 
 export type GroupSetupError = "tooFewParticipants" | "groupTooSmall" | "unassigned" | "advanceTooMany";
 
-/** Checks a finished assignment: every participant in 1..groups, ≥2 per group, advance ≤ smallest group. */
+/**
+ * Checks a finished assignment: every participant in 1..groups, ≥2 per group, and at least one participant
+ * of the smallest group stays out (advance ≤ smallest group − 1).
+ */
 export function validateGroups(
   assignment: Map<string, number | null>,
   groups: number,
@@ -39,6 +42,6 @@ export function validateGroups(
     sizes[g - 1]++;
   }
   if (sizes.some((n) => n < 2)) return "groupTooSmall";
-  if (advance > Math.min(...sizes)) return "advanceTooMany";
+  if (advance > Math.min(...sizes) - 1) return "advanceTooMany";
   return null;
 }

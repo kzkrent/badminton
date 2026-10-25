@@ -112,7 +112,7 @@ export async function saveTournament(
     balance,
     balance_cap: balance ? cap : null,
     groups_count: isGroups ? clamp(fd.get("groups_count"), 2, 8, 2) : null,
-    advance_per_group: isGroups ? clamp(fd.get("advance_per_group"), 1, 4, 2) : null,
+    advance_per_group: isGroups ? clamp(fd.get("advance_per_group"), 1, 8, 2) : null,
     group_seeding: isGroups ? (["rating", "random", "manual"].includes(seeding) ? seeding : "rating") : null,
   };
 

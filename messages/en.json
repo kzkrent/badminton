@@ -250,12 +250,14 @@
     "err_group_tooFewParticipants": "Too few participants: at least 2 per group.",
     "err_group_groupTooSmall": "Each group needs at least 2 participants.",
     "err_group_unassigned": "Put every participant into a group.",
-    "err_group_advanceTooMany": "More advance from a group than it has participants.",
+    "err_group_advanceTooMany": "At most the group size minus one can advance. Lower “Advance per group” or the number of groups.",
     "groupFor": "Participant's group",
     "noGroup": "Group?",
     "summaryGroups": "{groups} groups, top {advance} advance",
     "playoffFormat": "All playoff matches are best of three (no draws).",
-    "disc_ANY": "Any doubles (M+M, F+F, M+F)"
+    "disc_ANY": "Any doubles (M+M, F+F, M+F)",
+    "round_r64": "Round of 64",
+    "advanceHint": "At most the group size minus one advance: at least one pair in every group is eliminated."
   },
   "results": {
     "title": "Enter results",

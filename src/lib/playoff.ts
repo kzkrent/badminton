@@ -8,7 +8,7 @@ export type RoundRules = {
   balance_cap: number | null;
 };
 
-export const ROUND_KEYS = ["r32", "r16", "qf", "sf", "final", "third"] as const;
+export const ROUND_KEYS = ["r64", "r32", "r16", "qf", "sf", "final", "third"] as const;
 export type RoundKey = (typeof ROUND_KEYS)[number];
 export type PlayoffSettings = Partial<Record<RoundKey, RoundRules>>;
 
@@ -22,7 +22,7 @@ export const roundsFor = (qualifiers: number) => Math.log2(nextPowerOfTwo(qualif
 /** Settings key of round `round` (1 = first) out of `rounds`; the 3rd-place match is "third". */
 export function roundKey(round: number, rounds: number, slot = 0): RoundKey {
   if (round === rounds && slot === 1) return "third";
-  return (["final", "sf", "qf", "r16", "r32"] as const)[rounds - round];
+  return (["final", "sf", "qf", "r16", "r32", "r64"] as const)[rounds - round];
 }
 
 /** Keys of the rounds a bracket of this size uses, first round first. */

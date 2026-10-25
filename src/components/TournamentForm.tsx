@@ -234,7 +234,7 @@ export function TournamentForm({
             <label className="block text-sm">
               <span className="label">{tt("advancePerGroup")}</span>
               <select name="advance_per_group" value={advance} onChange={(e) => setAdvance(Number(e.target.value))} className="input">
-                {[1, 2, 3, 4].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                   <option key={n} value={n}>
                     {n}
                   </option>
@@ -249,6 +249,7 @@ export function TournamentForm({
                 <option value="manual">{tt("seeding_manual")}</option>
               </select>
             </label>
+            <p className="text-xs text-muted sm:col-span-3">{tt("advanceHint")}</p>
           </div>
         )}
 

@@ -25,11 +25,14 @@ describe("groups", () => {
 
   it("validates assignments", () => {
     const m = (pairs: [string, number | null][]) => new Map(pairs);
-    expect(validateGroups(m([["a", 1], ["b", 1], ["c", 2], ["d", 2]]), 2, 2)).toBeNull();
+    expect(validateGroups(m([["a", 1], ["b", 1], ["c", 2], ["d", 2]]), 2, 1)).toBeNull();
+    expect(validateGroups(m([["a", 1], ["b", 1], ["c", 2], ["d", 2]]), 2, 2)).toBe("advanceTooMany");
     expect(validateGroups(m([["a", 1], ["b", 1], ["c", 2]]), 2, 1)).toBe("tooFewParticipants");
     expect(validateGroups(m([["a", 1], ["b", 1], ["c", 1], ["d", 2]]), 2, 1)).toBe("groupTooSmall");
     expect(validateGroups(m([["a", 1], ["b", 1], ["c", 2], ["d", null]]), 2, 1)).toBe("unassigned");
-    expect(validateGroups(m([["a", 1], ["b", 1], ["c", 2], ["d", 2]]), 2, 3)).toBe("advanceTooMany");
+    const big = m(Array.from({ length: 18 }, (_, i) => [`p${i}`, (i % 2) + 1] as [string, number]));
+    expect(validateGroups(big, 2, 8)).toBeNull();
+    expect(validateGroups(big, 2, 9)).toBe("advanceTooMany");
   });
 });
 
@@ -46,6 +49,7 @@ describe("bracket", () => {
     expect(roundKey(3, 3, 1)).toBe("third");
     expect(usedRoundKeys(6, true)).toEqual(["qf", "sf", "final", "third"]);
     expect(usedRoundKeys(2, true)).toEqual(["final"]);
+    expect(usedRoundKeys(40, false)).toEqual(["r64", "r32", "r16", "qf", "sf", "final"]);
   });
 
   it("byes go to top seeds", () => {
