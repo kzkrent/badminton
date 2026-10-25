@@ -45,7 +45,7 @@ export function PlayoffSettingsEditor({ settings, qualifiers, fill, onFill, thir
           </span>
         </label>
       </div>
-      <p className="text-xs text-muted">{tt("playoffHint", { count: qualifiers })}</p>
+      <p className="text-xs text-muted">{tt("playoffHint", { count: fill ? bracket : qualifiers })}</p>
       <p className="text-xs text-muted">{tt("playoffFormat")}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[380px] text-sm">
