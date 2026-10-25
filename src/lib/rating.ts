@@ -12,7 +12,23 @@ export const K_REGULAR = 20;
 export const MIN_RANKED_MATCHES = 5;
 
 export function categoryOf(d: Discipline): RatingCategory {
-  return d === "MF" ? "mixed" : d.length === 2 ? "doubles" : "singles";
+  return d === "MF" ? "mixed" : d === "M" || d === "F" ? "singles" : "doubles";
+}
+
+/**
+ * Category of one match. Fixed by the event, except "any pairs" (SPEC 8): mixed when both pairs are
+ * man + woman, otherwise doubles.
+ */
+export function matchCategory(d: Discipline, home: ("M" | "F")[], away: ("M" | "F")[]): RatingCategory {
+  if (d !== "ANY") return categoryOf(d);
+  const mixed = (g: ("M" | "F")[]) => g.length === 2 && g[0] !== g[1];
+  return mixed(home) && mixed(away) ? "mixed" : "doubles";
+}
+
+/** Category used to rate a pair for seeding: mixed for a man + woman pair, doubles otherwise. */
+export function pairCategory(d: Discipline, genders: ("M" | "F")[]): RatingCategory {
+  if (d !== "ANY") return categoryOf(d);
+  return genders.length === 2 && genders[0] !== genders[1] ? "mixed" : "doubles";
 }
 
 /** A played (non-walkover) match in chronological order; sides are player ids. */

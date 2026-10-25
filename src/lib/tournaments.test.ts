@@ -23,6 +23,14 @@ describe("validateLineup", () => {
     expect(validateLineup("FF", [f1, m1])).toBe("gender");
   });
 
+  it("any pairs: any composition of two different players", () => {
+    expect(validateLineup("ANY", [m1, m2])).toBeNull();
+    expect(validateLineup("ANY", [f1, f2])).toBeNull();
+    expect(validateLineup("ANY", [m1, f1])).toBeNull();
+    expect(validateLineup("ANY", [m1])).toBe("size");
+    expect(validateLineup("ANY", [m1, m1])).toBe("samePlayer");
+  });
+
   it("rejects wrong size and duplicates", () => {
     expect(validateLineup("M", [m1, m2])).toBe("size");
     expect(validateLineup("MM", [m1])).toBe("size");

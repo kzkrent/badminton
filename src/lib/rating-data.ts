@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createClient } from "./supabase/server";
-import { categoryOf, computeRatings, type RatingMatch } from "./rating";
+import { computeRatings, matchCategory, type RatingMatch } from "./rating";
 import type { Game } from "./scoring";
 import type { Discipline } from "./tournaments";
 
@@ -34,7 +34,7 @@ export const loadRatings = cache(async () => {
       .select("id, tournament_id, stage, tour, position, home_id, away_id, games")
       .not("games", "is", null)
       .is("walkover_winner_id", null),
-    supabase.from("players").select("id, rating"),
+    supabase.from("players").select("id, rating, gender"),
   ]);
 
   const tournaments = new Map(((ts ?? []) as TournamentRow[]).map((t) => [t.id, t]));
@@ -44,6 +44,9 @@ export const loadRatings = cache(async () => {
     return p ? [p.player1_id, p.player2_id].filter((x): x is string => !!x) : [];
   };
   const when = (t: TournamentRow) => t.starts_on ?? t.created_at.slice(0, 10);
+
+  const genderOf = new Map(((players ?? []) as { id: string; gender: "M" | "F" }[]).map((p) => [p.id, p.gender]));
+  const genders = (participantId: string) => side(participantId).map((id) => genderOf.get(id) ?? "M");
 
   const matches: RatingMatch[] = ((ms ?? []) as MatchRow[])
     .filter((m) => tournaments.has(m.tournament_id) && m.games?.length)
@@ -62,7 +65,7 @@ export const loadRatings = cache(async () => {
     .map((m) => ({
       id: m.id,
       tournamentId: m.tournament_id,
-      category: categoryOf(tournaments.get(m.tournament_id)!.discipline),
+      category: matchCategory(tournaments.get(m.tournament_id)!.discipline, genders(m.home_id), genders(m.away_id)),
       home: side(m.home_id),
       away: side(m.away_id),
       games: m.games!,

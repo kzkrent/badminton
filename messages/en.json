@@ -254,7 +254,8 @@
     "groupFor": "Participant's group",
     "noGroup": "Group?",
     "summaryGroups": "{groups} groups, top {advance} advance",
-    "playoffFormat": "All playoff matches are best of three (no draws)."
+    "playoffFormat": "All playoff matches are best of three (no draws).",
+    "disc_ANY": "Any doubles (M+M, F+F, M+F)"
   },
   "results": {
     "title": "Enter results",

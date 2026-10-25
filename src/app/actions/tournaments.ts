@@ -9,7 +9,7 @@ import { roundRobin } from "@/lib/schedule";
 import { buildPlayoff, ROUND_KEYS, seedQualifiers, type GroupRow, type PlayoffSettings } from "@/lib/playoff";
 import { shuffle, snakeGroups, validateGroups, type GroupSetupError } from "@/lib/groups";
 import { computeStandings } from "@/lib/standings";
-import { categoryOf, START_RATING } from "@/lib/rating";
+import { pairCategory, START_RATING } from "@/lib/rating";
 import { loadRatings } from "@/lib/rating-data";
 import type { MatchLike } from "@/lib/scoring";
 import { GALLERY_BUCKET } from "@/lib/supabase/env";
@@ -254,11 +254,12 @@ async function participantStrength(
 ) {
   const supabase = await createClient();
   const ratings = await loadRatings();
-  const cat = categoryOf(discipline);
   const playerIds = parts.flatMap((p) => [p.player1_id, p.player2_id]).filter((x): x is string => !!x);
-  const { data: players } = await supabase.from("players").select("id, rating").in("id", playerIds);
-  const seed = new Map(((players ?? []) as { id: string; rating: number | null }[]).map((p) => [p.id, p.rating]));
-  const of = (pid: string) => {
+  const { data: players } = await supabase.from("players").select("id, rating, gender").in("id", playerIds);
+  const rows = (players ?? []) as { id: string; rating: number | null; gender: "M" | "F" }[];
+  const seed = new Map(rows.map((p) => [p.id, p.rating]));
+  const genderOf = new Map(rows.map((p) => [p.id, p.gender]));
+  const of = (pid: string, cat: ReturnType<typeof pairCategory>) => {
     const elo = ratings[cat].get(pid)?.rating;
     if (elo !== undefined) return elo;
     const start = seed.get(pid);
@@ -267,7 +268,8 @@ async function participantStrength(
   return new Map(
     parts.map((p) => {
       const ids = [p.player1_id, p.player2_id].filter((x): x is string => !!x);
-      return [p.id, ids.reduce((sum, pid) => sum + of(pid), 0) / ids.length] as const;
+      const cat = pairCategory(discipline, ids.map((pid) => genderOf.get(pid) ?? "M"));
+      return [p.id, ids.reduce((sum, pid) => sum + of(pid, cat), 0) / ids.length] as const;
     }),
   );
 }

@@ -1,14 +1,15 @@
 import { fullName, lastName, type Gender, type Player } from "./players";
 import type { PlayoffSettings } from "./playoff";
 
-export type Discipline = "M" | "F" | "MF" | "MM" | "FF";
+/** ANY — pairs of any composition (M+M, F+F or M+F) in one tournament. */
+export type Discipline = "M" | "F" | "MF" | "MM" | "FF" | "ANY";
 export type MatchFormat = "two_games" | "best_of_three";
 export type TournamentStatus = "draft" | "announced" | "active" | "finished";
 
 /** Before the draw: participants and format can still change. */
 export const isPreStart = (s: TournamentStatus) => s === "draft" || s === "announced";
 
-export const DISCIPLINES: Discipline[] = ["M", "F", "MF", "MM", "FF"];
+export const DISCIPLINES: Discipline[] = ["M", "F", "MF", "MM", "FF", "ANY"];
 
 export type Tournament = {
   id: string;
@@ -79,23 +80,28 @@ export type Match = {
 
 export const MATCH_COLUMNS = "id, tour, position, home_id, away_id, games, walkover_winner_id, stage, group_no, slot";
 
-export const isDoubles = (d: Discipline) => d.length === 2;
+export const isDoubles = (d: Discipline) => d !== "M" && d !== "F";
 
-/** Required genders of the lineup, in any order. */
-const LINEUP: Record<Discipline, Gender[]> = {
+/** Required genders of the lineup, in any order; null = any gender. */
+const LINEUP: Record<Discipline, (Gender | null)[]> = {
   M: ["M"],
   F: ["F"],
   MF: ["M", "F"],
   MM: ["M", "M"],
   FF: ["F", "F"],
+  ANY: [null, null],
 };
 
 export type LineupError = "size" | "gender" | "samePlayer";
+
+/** Gender each player slot must have when picking a lineup; null = any. */
+export const lineupSlots = (d: Discipline) => LINEUP[d];
 
 export function validateLineup(discipline: Discipline, players: Pick<Player, "id" | "gender">[]): LineupError | null {
   const need = LINEUP[discipline];
   if (players.length !== need.length) return "size";
   if (players.length === 2 && players[0].id === players[1].id) return "samePlayer";
+  if (need.every((g) => g === null)) return null;
   const have = players.map((p) => p.gender).sort();
   return have.join() === [...need].sort().join() ? null : "gender";
 }

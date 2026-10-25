@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { actualScore, categoryOf, computeRatings, expected, lastTournamentChange, type RatingMatch } from "./rating";
+import { actualScore, categoryOf, computeRatings, expected, lastTournamentChange, matchCategory, pairCategory, type RatingMatch } from "./rating";
 
 const singles = (id: string, home: string, away: string, games: RatingMatch["games"], tournamentId = "T1"): RatingMatch => ({
   id,
@@ -18,6 +18,16 @@ describe("basics", () => {
     expect(categoryOf("MM")).toBe("doubles");
     expect(categoryOf("FF")).toBe("doubles");
     expect(categoryOf("MF")).toBe("mixed");
+    expect(categoryOf("ANY")).toBe("doubles");
+  });
+
+  it("any pairs: mixed only when both pairs are man + woman", () => {
+    expect(matchCategory("ANY", ["M", "F"], ["F", "M"])).toBe("mixed");
+    expect(matchCategory("ANY", ["M", "F"], ["M", "M"])).toBe("doubles");
+    expect(matchCategory("ANY", ["F", "F"], ["M", "M"])).toBe("doubles");
+    expect(matchCategory("MF", ["M", "F"], ["M", "F"])).toBe("mixed");
+    expect(pairCategory("ANY", ["M", "F"])).toBe("mixed");
+    expect(pairCategory("ANY", ["F", "F"])).toBe("doubles");
   });
 
   it("expected score", () => {

@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { ParticipantFormState } from "@/app/actions/tournaments";
 import { createPlayerInline } from "@/app/actions/players";
 import type { Gender, Player } from "@/lib/players";
-import { isDoubles, type Discipline, type Participant } from "@/lib/tournaments";
+import { isDoubles, lineupSlots, type Discipline, type Participant } from "@/lib/tournaments";
 import { ParticipantLabel } from "./ParticipantLabel";
 import { PlayerForm } from "./PlayerForm";
 import { PlayerPicker } from "./PlayerPicker";
@@ -24,8 +24,6 @@ type Props = {
   setGroup?: (participantId: string, group: number | null) => Promise<void>;
 };
 
-/** Gender required in each slot; mixed pairs are entered as man + woman. */
-const SLOTS: Record<Discipline, Gender[]> = { M: ["M"], F: ["F"], MF: ["M", "F"], MM: ["M", "M"], FF: ["F", "F"] };
 
 export function ParticipantsManager({
   discipline,
@@ -40,7 +38,8 @@ export function ParticipantsManager({
   const t = useTranslations("tournaments");
   const te = useTranslations("errors");
   const locale = useLocale();
-  const slots = SLOTS[discipline];
+  // Gender required in each slot (null = any); mixed pairs are entered as man + woman.
+  const slots: (Gender | null)[] = lineupSlots(discipline);
   const doubles = isDoubles(discipline);
 
   const [extraPlayers, setExtraPlayers] = useState<Player[]>([]);
@@ -69,7 +68,7 @@ export function ParticipantsManager({
 
   const available = (slot: number) =>
     allPlayers.filter(
-      (p) => p.gender === slots[slot] && !taken.has(p.id) && !selected.some((s, i) => i !== slot && s?.id === p.id),
+      (p) => (slots[slot] === null || p.gender === slots[slot]) && !taken.has(p.id) && !selected.some((s, i) => i !== slot && s?.id === p.id),
     );
 
   const select = (slot: number, p: Player | null) => setSelected((cur) => cur.map((s, i) => (i === slot ? p : s)));
@@ -190,7 +189,7 @@ export function ParticipantsManager({
             <h2 className="mb-2 text-lg font-semibold text-white">{t("newPlayer")}</h2>
             <PlayerForm
               action={createPlayerInline}
-              defaultGender={slots[creatingFor]}
+              defaultGender={slots[creatingFor] ?? undefined}
               onCreated={onCreated}
               onCancel={() => setCreatingFor(null)}
             />
