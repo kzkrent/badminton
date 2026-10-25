@@ -7,8 +7,10 @@ import {
   loserTarget,
   playoffPlaces,
   roundKey,
+  rankWildcards,
   seedQualifiers,
   usedRoundKeys,
+  wildcardCount,
   winnerTarget,
   type GroupRow,
   type Qualifier,
@@ -122,12 +124,12 @@ describe("places", () => {
   });
 
   const rows: GroupRow[] = [
-    { id: "A1", group: 1, place: 1, points: 6, diff: 20, against: 30 },
-    { id: "A2", group: 1, place: 2, points: 3, diff: 0, against: 40 },
-    { id: "A3", group: 1, place: 3, points: 0, diff: -20, against: 50 },
-    { id: "B1", group: 2, place: 1, points: 6, diff: 30, against: 25 },
-    { id: "B2", group: 2, place: 2, points: 4, diff: 5, against: 35 },
-    { id: "B3", group: 2, place: 3, points: 1, diff: -35, against: 60 },
+    { id: "A1", group: 1, place: 1, played: 2, points: 6, diff: 20, against: 30 },
+    { id: "A2", group: 1, place: 2, played: 2, points: 3, diff: 0, against: 40 },
+    { id: "A3", group: 1, place: 3, played: 2, points: 0, diff: -20, against: 50 },
+    { id: "B1", group: 2, place: 1, played: 2, points: 6, diff: 30, against: 25 },
+    { id: "B2", group: 2, place: 2, played: 2, points: 4, diff: 5, against: 35 },
+    { id: "B3", group: 2, place: 3, played: 2, points: 1, diff: -35, against: 60 },
   ];
 
   it("seeds winners first, then by performance", () => {
@@ -135,6 +137,44 @@ describe("places", () => {
   });
 
   it("non-qualifiers share ranges after the qualifiers", () => {
-    expect(Object.fromEntries(groupOutPlaces(rows, 2))).toEqual({ A3: "5–6", B3: "5–6" });
+    expect(Object.fromEntries(groupOutPlaces(rows, new Set(["A1", "A2", "B1", "B2"])))).toEqual({ A3: "5–6", B3: "5–6" });
+  });
+
+  // 14 pairs: groups of 5, 5, 4; top 2 advance (6) → 2 best thirds complete a bracket of 8.
+  const g = (id: string, group: number, place: number, played: number, points: number, diff: number, against: number): GroupRow => ({
+    id, group, place, played, points, diff, against,
+  });
+  const unequal: GroupRow[] = [
+    g("A1", 1, 1, 4, 12, 40, 50), g("A2", 1, 2, 4, 8, 20, 60), g("A3", 1, 3, 4, 6, 0, 70), g("A4", 1, 4, 4, 3, -20, 80), g("A5", 1, 5, 4, 0, -40, 90),
+    g("B1", 2, 1, 4, 11, 30, 55), g("B2", 2, 2, 4, 9, 15, 62), g("B3", 2, 3, 4, 5, -5, 72), g("B4", 2, 4, 4, 4, -10, 75), g("B5", 2, 5, 4, 1, -30, 88),
+    // group C has one match fewer: 5 points in 3 matches beats 6 in 4 per match
+    g("C1", 3, 1, 3, 9, 30, 40), g("C2", 3, 2, 3, 6, 10, 50), g("C3", 3, 3, 3, 5, 2, 55), g("C4", 3, 4, 3, 0, -42, 70),
+  ];
+
+  it("best thirds by per-match averages", () => {
+    expect(rankWildcards(unequal, 2).slice(0, 3).map((r) => r.id)).toEqual(["C3", "A3", "B3"]);
+  });
+
+  it("fills the bracket with the best next places, seeded last", () => {
+    const seeded = seedQualifiers(unequal, 2, true);
+    expect(seeded).toHaveLength(8);
+    expect(seeded.slice(6).map((q) => q.id)).toEqual(["C3", "A3"]);
+    expect(seedQualifiers(unequal, 2, false)).toHaveLength(6);
+  });
+
+  it("takes the next tier when one tier isn't enough", () => {
+    // 3 groups × 1 = 3 direct → bracket 4 → 1 extra; 5 groups × 1 = 5 → 8 → 3 extra from 2nd places
+    expect(wildcardCount(3, 10)).toBe(1);
+    expect(wildcardCount(5, 10)).toBe(3);
+    expect(wildcardCount(8, 10)).toBe(0);
+    expect(wildcardCount(6, 1)).toBe(1);
+  });
+
+  it("non-qualifiers' places exclude wildcards", () => {
+    const qualified = new Set(seedQualifiers(unequal, 2, true).map((q) => q.id));
+    const places = groupOutPlaces(unequal, qualified);
+    expect(places.get("B3")).toBe("9");
+    expect(places.get("A4")).toBe("10–12");
+    expect(places.get("C3")).toBeUndefined();
   });
 });

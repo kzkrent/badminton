@@ -42,11 +42,13 @@ export type Tournament = {
   advance_per_group: number | null;
   group_seeding: "rating" | "random" | "manual" | null;
   third_place: boolean;
+  /** complete the bracket with the best of the next places instead of byes */
+  fill_bracket: boolean;
   playoff_settings: PlayoffSettings | null;
 };
 
 export const TOURNAMENT_COLUMNS =
-  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, ends_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact, organizer_id, groups_count, advance_per_group, group_seeding, third_place, playoff_settings";
+  "id, name_ru, name_en, type, rounds, discipline, match_format, game_target, balance, balance_cap, starts_on, ends_on, status, rating_weight, cover_path, venue_ru, venue_en, start_time, announcement_ru, announcement_en, registration_contact, organizer_id, groups_count, advance_per_group, group_seeding, third_place, fill_bracket, playoff_settings";
 
 export type Participant = {
   id: string;

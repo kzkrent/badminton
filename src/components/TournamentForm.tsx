@@ -45,6 +45,7 @@ export function TournamentForm({
   const [groups, setGroups] = useState(t?.groups_count ?? 2);
   const [advance, setAdvance] = useState(t?.advance_per_group ?? 2);
   const [thirdPlace, setThirdPlace] = useState(t?.third_place ?? true);
+  const [fill, setFill] = useState(t?.fill_bracket ?? false);
   const playoffLocked = !!playoffBuilt || (!!t && t.status === "finished");
 
   const error =
@@ -313,6 +314,8 @@ export function TournamentForm({
           <PlayoffSettingsEditor
             settings={t?.playoff_settings ?? null}
             qualifiers={groups * advance}
+            fill={fill}
+            onFill={setFill}
             thirdPlace={thirdPlace}
             onThirdPlace={setThirdPlace}
             disabled={playoffLocked}

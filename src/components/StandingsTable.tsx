@@ -17,13 +17,15 @@ type Props = {
   matches: Match[];
   /** Groups stage: the first N rows advance and are tinted. */
   qualify?: number;
+  /** Groups stage: participants who reach the playoff as the best of the next places (tinted amber). */
+  wildcards?: Set<string>;
 };
 
 const COLS = ["played", "for", "against", "diff", "points", "place"] as const;
 /** Shuttles for/against stay on wider screens; the difference column carries them on phones. */
 const HIDE_ON_MOBILE = new Set<string>(["for", "against"]);
 
-export function StandingsTable({ rows, unresolvedTies, participants, matches, qualify = 0 }: Props) {
+export function StandingsTable({ rows, unresolvedTies, participants, matches, qualify = 0, wildcards }: Props) {
   const t = useTranslations("standings");
   const locale = useLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -67,7 +69,11 @@ export function StandingsTable({ rows, unresolvedTies, participants, matches, qu
                   <tr
                     onClick={() => setExpanded(open ? null : r.id)}
                     className={`cursor-pointer border-b border-border hover:bg-background ${open ? "bg-background" : ""} ${
-                      r.order < qualify && r.place ? "bg-accent/5 shadow-[inset_3px_0_0_var(--accent)]" : ""
+                      r.order < qualify && r.place
+                        ? "bg-accent/5 shadow-[inset_3px_0_0_var(--accent)]"
+                        : wildcards?.has(r.id)
+                          ? "bg-amber-500/10 shadow-[inset_3px_0_0_rgb(245_158_11)]"
+                          : ""
                     }`}
                     aria-expanded={open}
                   >

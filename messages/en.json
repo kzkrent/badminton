@@ -257,7 +257,17 @@
     "playoffFormat": "All playoff matches are best of three (no draws).",
     "disc_ANY": "Any doubles (M+M, F+F, M+F)",
     "round_r64": "Round of 64",
-    "advanceHint": "At most the group size minus one advance: at least one pair in every group is eliminated."
+    "advanceHint": "At most the group size minus one advance: at least one pair in every group is eliminated.",
+    "fillNo": "No filling",
+    "fillNoHint": "Bracket of {bracket}: the top {byes} skip the first round.",
+    "fillYes": "Fill the bracket with the best of the rest",
+    "fillYesHint": "{direct} advance + {extra} best of the next places = {bracket}.",
+    "wildcard": "best of the next places",
+    "legendDirect": "advances from the group",
+    "legendWildcard": "advances as one of the best of the next places",
+    "wildcardTable": "Race for the remaining playoff spots",
+    "wildcardTableHint": "Next places of the groups compared by points, shuttle difference and conceded per match — groups differ in size.",
+    "perMatch": "per match"
   },
   "results": {
     "title": "Enter results",

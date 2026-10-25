@@ -150,27 +150,63 @@ export function playoffPlaces(matches: PlayedPlayoffMatch[], rounds: number): Ma
 }
 
 /** A participant's result in its group, for seeding and final places. */
-export type GroupRow = { id: string; group: number; place: number; points: number; diff: number; against: number };
+export type GroupRow = {
+  id: string;
+  group: number;
+  place: number;
+  played: number;
+  points: number;
+  diff: number;
+  against: number;
+};
 
 const byGroupPerformance = (a: GroupRow, b: GroupRow) =>
   a.place - b.place || b.points - a.points || b.diff - a.diff || a.against - b.against || a.group - b.group;
 
-/** Seeds: all group winners first, then runners-up, …; within a tier by points, difference, conceded. */
-export function seedQualifiers(rows: GroupRow[], advance: number): Qualifier[] {
+const perMatch = (x: number, played: number) => (played ? x / played : 0);
+
+/**
+ * Candidates to fill the bracket (SPEC 5.6): the next places after the direct qualifiers, tier by tier
+ * (all 3rd places, then 4th…), within a tier by points, shuttle difference and conceded **per match**
+ * (groups differ in size). Full ties are broken by `tiebreak` (random at the draw), else by group.
+ */
+export function rankWildcards(rows: GroupRow[], advance: number, tiebreak?: Map<string, number>): GroupRow[] {
   return rows
-    .filter((r) => r.place <= advance)
-    .sort(byGroupPerformance)
-    .map((r) => ({ id: r.id, group: r.group }));
+    .filter((r) => r.place > advance)
+    .sort(
+      (a, b) =>
+        a.place - b.place ||
+        perMatch(b.points, b.played) - perMatch(a.points, a.played) ||
+        perMatch(b.diff, b.played) - perMatch(a.diff, a.played) ||
+        perMatch(a.against, a.played) - perMatch(b.against, b.played) ||
+        (tiebreak ? (tiebreak.get(a.id) ?? 0) - (tiebreak.get(b.id) ?? 0) : 0) ||
+        a.group - b.group,
+    );
 }
 
-/** Places for those who didn't leave the groups: each group-place tier shares a range after the qualifiers. */
-export function groupOutPlaces(rows: GroupRow[], advance: number): Map<string, string> {
+/** How many extra participants complete the bracket: direct qualifiers up to the next power of two. */
+export const wildcardCount = (direct: number, available: number) =>
+  Math.max(0, Math.min(nextPowerOfTwo(direct) - direct, available));
+
+/**
+ * Seeds: all group winners first, then runners-up, …; within a tier by points, difference, conceded.
+ * With `fill`, the best of the next places complete the bracket and are seeded after everyone else.
+ */
+export function seedQualifiers(rows: GroupRow[], advance: number, fill = false, tiebreak?: Map<string, number>): Qualifier[] {
+  const direct = rows.filter((r) => r.place <= advance).sort(byGroupPerformance);
+  const ranked = fill ? rankWildcards(rows, advance, tiebreak) : [];
+  const extra = ranked.slice(0, wildcardCount(direct.length, ranked.length));
+  return [...direct, ...extra].map((r) => ({ id: r.id, group: r.group }));
+}
+
+/** Places for those who didn't reach the playoff: each group-place tier shares a range after the qualifiers. */
+export function groupOutPlaces(rows: GroupRow[], qualified: Set<string>): Map<string, string> {
   const out = new Map<string, string>();
-  const qualifiers = rows.filter((r) => r.place <= advance).length;
-  let next = qualifiers + 1;
-  const tiers = [...new Set(rows.filter((r) => r.place > advance).map((r) => r.place))].sort((a, b) => a - b);
+  let next = qualified.size + 1;
+  const rest = rows.filter((r) => !qualified.has(r.id));
+  const tiers = [...new Set(rest.map((r) => r.place))].sort((a, b) => a - b);
   for (const place of tiers) {
-    const tier = rows.filter((r) => r.place === place);
+    const tier = rest.filter((r) => r.place === place);
     const label = tier.length === 1 ? String(next) : `${next}–${next + tier.length - 1}`;
     for (const r of tier) out.set(r.id, label);
     next += tier.length;

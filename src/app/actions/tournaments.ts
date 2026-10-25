@@ -133,7 +133,11 @@ export async function saveTournament(
         balance_cap: bal ? roundCap : null,
       };
     }
-    playoff = { playoff_settings: rules, third_place: fd.get("third_place") === "on" };
+    playoff = {
+      playoff_settings: rules,
+      third_place: fd.get("third_place") === "on",
+      fill_bracket: fd.get("fill_bracket") === "fill",
+    };
   }
 
   const supabase = await createClient();
@@ -382,7 +386,7 @@ export async function buildPlayoffStage(id: string): Promise<StatusActionState> 
   const supabase = await createClient();
   const { data: t } = await supabase
     .from("tournaments")
-    .select("status, type, advance_per_group, third_place")
+    .select("status, type, advance_per_group, third_place, fill_bracket")
     .eq("id", id)
     .maybeSingle();
   if (!t || t.status !== "active" || t.type !== "groups_playoff") return { error: "forbidden" };
@@ -406,13 +410,16 @@ export async function buildPlayoffStage(id: string): Promise<StatusActionState> 
       id: r.id,
       group: g,
       place: r.order + 1,
+      played: r.played,
       points: r.points,
       diff: r.diff,
       against: r.shuttlesAgainst,
     }));
   });
 
-  const seeded = seedQualifiers(rows, t.advance_per_group as number);
+  // Full ties among candidates for the extra places are drawn at random once, here.
+  const draw = new Map(rows.map((r) => [r.id, Math.random()]));
+  const seeded = seedQualifiers(rows, t.advance_per_group as number, t.fill_bracket as boolean, draw);
   if (seeded.length < 2) return { error: "tooFew" };
   const playoff = buildPlayoff(seeded, t.third_place as boolean).map((m) => ({
     tournament_id: id,

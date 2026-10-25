@@ -1,19 +1,24 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { DEFAULT_ROUND_RULES, usedRoundKeys, type PlayoffSettings, type RoundKey } from "@/lib/playoff";
+import { DEFAULT_ROUND_RULES, nextPowerOfTwo, usedRoundKeys, type PlayoffSettings, type RoundKey } from "@/lib/playoff";
 
 type Props = {
   settings: PlayoffSettings | null;
+  /** direct qualifiers: groups × advance */
   qualifiers: number;
+  fill: boolean;
+  onFill: (v: boolean) => void;
   thirdPlace: boolean;
   onThirdPlace: (v: boolean) => void;
   disabled?: boolean;
 };
 
 /** Per-round rules for the playoff: one row for each round this bracket size uses. */
-export function PlayoffSettingsEditor({ settings, qualifiers, thirdPlace, onThirdPlace, disabled }: Props) {
+export function PlayoffSettingsEditor({ settings, qualifiers, fill, onFill, thirdPlace, onThirdPlace, disabled }: Props) {
   const tt = useTranslations("tournaments");
+  const bracket = nextPowerOfTwo(qualifiers);
+  const extra = bracket - qualifiers;
   const keys: RoundKey[] = usedRoundKeys(Math.max(2, qualifiers), thirdPlace);
 
   return (
@@ -22,6 +27,24 @@ export function PlayoffSettingsEditor({ settings, qualifiers, thirdPlace, onThir
         <input type="checkbox" name="third_place" checked={thirdPlace} onChange={(e) => onThirdPlace(e.target.checked)} />
         {tt("thirdPlace")}
       </label>
+      <div className="space-y-1 text-sm">
+        <label className="flex items-start gap-2">
+          <input type="radio" name="fill_bracket" value="byes" checked={!fill} onChange={() => onFill(false)} className="mt-1" />
+          <span>
+            {tt("fillNo")}
+            {!fill && extra > 0 && <span className="block text-xs text-muted">{tt("fillNoHint", { byes: extra, bracket })}</span>}
+          </span>
+        </label>
+        <label className="flex items-start gap-2">
+          <input type="radio" name="fill_bracket" value="fill" checked={fill} onChange={() => onFill(true)} className="mt-1" />
+          <span>
+            {tt("fillYes")}
+            {fill && extra > 0 && (
+              <span className="block text-xs text-muted">{tt("fillYesHint", { direct: qualifiers, extra, bracket })}</span>
+            )}
+          </span>
+        </label>
+      </div>
       <p className="text-xs text-muted">{tt("playoffHint", { count: qualifiers })}</p>
       <p className="text-xs text-muted">{tt("playoffFormat")}</p>
       <div className="overflow-x-auto">
