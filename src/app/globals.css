@@ -68,3 +68,23 @@ body {
 @utility card {
   @apply rounded-xl border border-border bg-surface;
 }
+
+/* Printing (referee scoresheets): plain black on white A4. */
+@page {
+  size: A4;
+  margin: 8mm;
+}
+
+@media print {
+  :root {
+    --background: #ffffff;
+    --surface: #ffffff;
+    --foreground: #000000;
+    --muted: #333333;
+    --border: #000000;
+  }
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+}

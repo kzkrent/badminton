@@ -16,7 +16,7 @@ export async function Footer() {
   const locale = await getLocale();
 
   return (
-    <footer className="mt-8 border-t border-border bg-surface">
+    <footer className="mt-8 border-t print:hidden border-border bg-surface">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <Link href="/partners" className="mb-4 block text-center text-xs font-semibold tracking-wide text-muted uppercase hover:text-accent">
           {t("title")}

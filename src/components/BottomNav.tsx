@@ -71,7 +71,7 @@ export function BottomNav({ role }: { role: NavRole }) {
       )}
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t print:hidden border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
         aria-label={t("menu")}
       >
         <div className="flex">

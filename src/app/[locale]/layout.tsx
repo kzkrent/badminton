@@ -33,10 +33,10 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
           <Header />
-          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 print:max-w-none print:p-0">{children}</main>
           <Footer />
           {/* Room for the phone tab bar so it never covers the footer. */}
-          <div className="h-[calc(3.75rem+env(safe-area-inset-bottom))] sm:hidden" aria-hidden />
+          <div className="h-[calc(3.75rem+env(safe-area-inset-bottom))] sm:hidden print:hidden" aria-hidden />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -100,9 +100,16 @@ export default async function ManageTournamentPage({ params }: PageProps<"/[loca
     <section className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <TournamentHeader tournament={tournament} locale={locale} />
-        <Link href={`/tournaments/${id}`} className="btn-secondary">
-          {t("openPublic")}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {matches.length > 0 && (
+            <Link href={`/tournaments/${id}/scoresheets`} className="btn-secondary">
+              🖨 {t("scoresheets")}
+            </Link>
+          )}
+          <Link href={`/tournaments/${id}`} className="btn-secondary">
+            {t("openPublic")}
+          </Link>
+        </div>
       </div>
 
       <CoverEditor tournamentId={id} coverPath={tournament.cover_path} setCover={setCover.bind(null, id)} />
