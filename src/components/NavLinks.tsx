@@ -9,6 +9,7 @@ type Item = { href: string; key: string; show?: (role: NavRole) => boolean };
 
 /** Every section, in menu order. */
 export const NAV_ITEMS: Item[] = [
+  { href: "/", key: "home" },
   { href: "/tournaments", key: "tournaments" },
   { href: "/players", key: "players" },
   { href: "/ratings", key: "ratings" },

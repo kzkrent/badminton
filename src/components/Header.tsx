@@ -17,8 +17,7 @@ export async function Header() {
       <header className="sticky top-0 z-30 border-b print:hidden border-border bg-surface/95 backdrop-blur sm:static sm:bg-surface">
         <div className="mx-auto flex max-w-5xl items-center gap-x-6 gap-y-2 px-4 py-2.5 sm:flex-wrap sm:py-3">
           <Link href="/" className="truncate font-semibold">
-            🏸 <span className="sm:hidden">{t("appNameShort")}</span>
-            <span className="hidden sm:inline">{t("appName")}</span>
+            🏸 {t("appNameShort")}
           </Link>
           <NavLinks role={role} />
           <div className="ml-auto flex shrink-0 items-center gap-3 text-sm">
