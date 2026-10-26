@@ -12,11 +12,11 @@ import { fullName } from "@/lib/players";
 import { participantName, tournamentName, type Match, type MatchFormat, type Participant } from "@/lib/tournaments";
 import { PrintButton } from "@/components/PrintButton";
 
-const PER_PAGE = 4;
+const PER_PAGE = 5;
 
 const list = (v: string | string[] | undefined) => (Array.isArray(v) ? v : v ? [v] : []);
 
-/** Referee scoresheets: 4 matches per A4 page, chosen by tour / group / playoff round (staff only). */
+/** Referee scoresheets: 5 matches per A4 page, chosen by tour / group / playoff round (staff only). */
 export default async function ScoresheetsPage({ params, searchParams }: PageProps<"/[locale]/tournaments/[id]/scoresheets">) {
   const { locale, id } = await params;
   setRequestLocale(locale);
@@ -157,7 +157,7 @@ export default async function ScoresheetsPage({ params, searchParams }: PageProp
             return (
               <article
                 key={m.id}
-                className={`flex h-[64mm] min-w-[180mm] flex-col gap-1 border-b border-dashed border-black px-3 py-2 text-[9pt] break-inside-avoid ${
+                className={`flex h-[55mm] min-w-[180mm] flex-col gap-1 border-b border-dashed border-black px-3 py-2 text-[9pt] break-inside-avoid ${
                   (i + 1) % PER_PAGE === 0 ? "break-after-page" : ""
                 }`}
               >
@@ -188,7 +188,7 @@ export default async function ScoresheetsPage({ params, searchParams }: PageProp
                             {g === 3 && <div className="font-normal">{t("ifTied")}</div>}
                           </th>
                         ))}
-                        <th className="border border-black px-1 py-0.5 font-semibold whitespace-nowrap">{t("noShow")}</th>
+                        <th className="border-2 border-black px-1 py-0.5 font-bold whitespace-nowrap">{t("total")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -196,38 +196,30 @@ export default async function ScoresheetsPage({ params, searchParams }: PageProp
                         <tr key={row}>
                           <td className="max-w-[90mm] border border-black px-2 py-1">{team(byId.get(pid ?? ""))}</td>
                           {games.map((g) => (
-                            <td key={g} className="h-11 w-[17mm] border border-black" />
+                            <td key={g} className="h-10 w-[17mm] border border-black" />
                           ))}
-                          <td className="border border-black text-center">
-                            <span className="inline-block h-4 w-4 border border-black" />
-                          </td>
+                          <td className="w-[17mm] border-2 border-black" />
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   <div className="flex w-[22mm] shrink-0 flex-col items-center justify-center text-center text-[7pt]">
-                    <div className="h-[20mm] w-[20mm]" dangerouslySetInnerHTML={{ __html: qr }} />
+                    <div className="h-[18mm] w-[18mm]" dangerouslySetInnerHTML={{ __html: qr }} />
                     {t("qr")}
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <span className="whitespace-nowrap">
-                    {t("start")} <span className="inline-block w-14 border-b border-black" />
-                  </span>
-                  <span className="whitespace-nowrap">
-                    {t("end")} <span className="inline-block w-14 border-b border-black" />
-                  </span>
-                  <span className="flex flex-1 whitespace-nowrap">
-                    {t("winner")} <span className="ml-1 inline-block flex-1 border-b border-black" />
-                  </span>
-                </div>
-                <div className="flex gap-4">
-                  {[t("umpire"), t("team1"), t("team2")].map((who) => (
-                    <span key={who} className="flex flex-1 whitespace-nowrap">
-                      {who} <span className="ml-1 inline-block flex-1 border-b border-black" />
-                    </span>
-                  ))}
+                <div className="flex flex-wrap items-center gap-x-5 text-[9pt]">
+                  <b>{t("noShow")}:</b>
+                  {[m.home_id, m.away_id].map((pid, row) => {
+                    const p = byId.get(pid ?? "");
+                    return (
+                      <span key={row} className="flex min-w-0 items-center gap-1.5">
+                        <span className="inline-block h-3.5 w-3.5 shrink-0 border border-black" />
+                        <span className="truncate">{p ? participantName(p, locale) : t(row === 0 ? "team1" : "team2")}</span>
+                      </span>
+                    );
+                  })}
                 </div>
               </article>
             );

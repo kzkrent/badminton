@@ -402,7 +402,7 @@
     "title": "Referee scoresheets",
     "back": "Back to manage",
     "print": "Print",
-    "hint": "Matches selected: {count} — {pages, plural, one {# A4 page} other {# A4 pages}}, 4 matches each. Print or “Save as PDF” with the button on the right.",
+    "hint": "Matches selected: {count} — {pages, plural, one {# A4 page} other {# A4 pages}}, 5 matches each. Print or “Save as PDF” with the button on the right.",
     "tours": "Rounds",
     "groups": "Groups",
     "includePlayed": "Include matches already played",
@@ -416,11 +416,8 @@
     "ifTied": "(if 1:1)",
     "noShow": "No-show",
     "qr": "Enter result",
-    "start": "Start",
-    "end": "End",
-    "winner": "Winner:",
-    "umpire": "Umpire:",
-    "team1": "Team 1:",
-    "team2": "Team 2:"
+    "team1": "Team 1",
+    "team2": "Team 2",
+    "total": "Result"
   }
 }
